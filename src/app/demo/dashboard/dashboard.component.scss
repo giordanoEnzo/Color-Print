@@ -1,0 +1,92 @@
+/* Estilo do modal */
+.modal {
+  display: block; /* Garantir que esteja visível */
+  background: rgba(0, 0, 0, 0.5); /* Fundo escuro */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1050; /* Garantir que esteja acima do backdrop */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  border-radius: 10px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header .close {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1040; /* Abaixo do modal */
+}
+
+.modal-dialog.modal-lg {
+  max-width: 90%;
+  width: 90%;
+}
+
+.modal-header {
+  background-color: #28a745;
+  color: white;
+}
+
+.modal-footer {
+  text-align: right;
+}
+
+.modal-body {
+  padding: 25px;
+}
+
+
+.botao-privacidade {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 8px 16px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: #e0e0e0;
+  }
+  
+  &.ativo {
+    background-color: #2c3e50;
+    color: white;
+    border-color: #2c3e50;
+  }
+}
+
+.sensivel {
+  filter: blur(4px);
+  user-select: none;
+  transition: filter 0.3s ease;
+  
+  &:hover {
+    filter: blur(0);
+  }
+}
+
+/* Opcional: Aplicar a todos os elementos financeiros automaticamente */
+[class*="total"], [class*="valor"] {
+  transition: filter 0.3s ease;
+}

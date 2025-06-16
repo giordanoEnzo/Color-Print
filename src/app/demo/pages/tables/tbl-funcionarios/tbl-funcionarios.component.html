@@ -1,0 +1,117 @@
+<div class="row">
+    <div class="col-xl-12">
+      <!-- Botão para abrir o formulário de adicionar funcionário -->
+      <app-card cardTitle="Funcionários" [options]="false" [buttonh]="true" buttonTitle="Adicionar funcionário" [buttonAction]="toggleFormulario.bind(this)" blockClass="table-border-style">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Cargo</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Excluir</th>
+                <th>Editar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let funcionario of funcionariosPaginados">
+                <td>{{ funcionario.id }}</td>
+                <td>{{ funcionario.nome }}</td>
+                <td>{{ funcionario.cargo }}</td>
+                <td>{{ funcionario.email }}</td>
+                <td>{{ funcionario.telefone }}</td>
+                <td>
+                  <button class="btn btn-danger btn-sm" (click)="deletarFuncionario(funcionario.id)">
+                    Excluir
+                  </button>
+                </td>
+                <td>
+                  <button class="btn btn-success btn-sm" (click)="editarFuncionario(funcionario)">
+                    Editar
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+  
+        <!-- Paginação -->
+        <nav aria-label="Page navigation" class="mt-3">
+          <ul class="pagination justify-content-center">
+            <li class="page-item" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+              <span class="page-link">Anterior</span>
+            </li>
+            <li class="page-item" *ngFor="let page of pages" [class.active]="page === currentPage" (click)="changePage(page)">
+              <span class="page-link">{{ page }}</span>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+              <span class="page-link">Próximo</span>
+            </li>
+          </ul>
+        </nav>
+      </app-card>
+    </div>
+  
+    <!-- Formulário para adicionar funcionário -->
+    <div *ngIf="mostrarFormulario" class="row">
+      <div class="col-sm-12">
+        <app-card cardTitle="Adicionar Funcionário" [options]="false">
+          <div class="form-container">
+            <form (ngSubmit)="adicionarFuncionario()">
+              <div class="form-group">
+                <label for="nome">Nome</label>
+                <input id="nome" class="form-control" [(ngModel)]="novoFuncionario.nome" name="nome" required />
+              </div>
+              <div class="form-group">
+                <label for="cargo">Cargo</label>
+                <input id="cargo" class="form-control" [(ngModel)]="novoFuncionario.cargo" name="cargo" required />
+              </div>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" class="form-control" [(ngModel)]="novoFuncionario.email" name="email" required />
+              </div>
+              <div class="form-group">
+                <label for="telefone">Telefone</label>
+                <input id="telefone" type="text" class="form-control" [(ngModel)]="novoFuncionario.telefone" name="telefone" required />
+              </div>
+              <button type="submit" class="btn btn-success">Salvar</button>
+              <button type="button" class="btn btn-secondary" (click)="toggleFormulario()">Cancelar</button>
+            </form>
+          </div>
+        </app-card>
+      </div>
+    </div>
+  
+    <!-- Formulário para editar funcionário -->
+    <div *ngIf="funcionarioEmEdicao" class="row">
+      <div class="col-sm-12">
+        <app-card cardTitle="Editar Funcionário" [options]="false">
+          <div class="form-container">
+            <form (ngSubmit)="salvarEdicao()">
+              <div class="form-group">
+                <label for="nome">Nome</label>
+                <input id="nome" class="form-control" [(ngModel)]="funcionarioEmEdicao.nome" name="nome" required />
+              </div>
+              <div class="form-group">
+                <label for="cargo">Cargo</label>
+                <input id="cargo" class="form-control" [(ngModel)]="funcionarioEmEdicao.cargo" name="cargo" required />
+              </div>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" class="form-control" [(ngModel)]="funcionarioEmEdicao.email" name="email" required />
+              </div>
+              <div class="form-group">
+                <label for="telefone">Telefone</label>
+                <input id="telefone" type="text" class="form-control" [(ngModel)]="funcionarioEmEdicao.telefone" name="telefone" required />
+              </div>
+              <button type="submit" class="btn btn-success">Salvar</button>
+              <button type="button" class="btn btn-secondary" (click)="cancelarEdicao()">Cancelar</button>
+            </form>
+          </div>
+        </app-card>
+      </div>
+    </div>
+  </div>
+  

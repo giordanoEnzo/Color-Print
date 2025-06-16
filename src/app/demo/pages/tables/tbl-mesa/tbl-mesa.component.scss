@@ -1,0 +1,202 @@
+/* Estilo do card de mesa */
+.mesa-card {
+  border: 1px solid #ddd; /* Borda fina */
+  border-radius: 10px; /* Bordas arredondadas */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Efeito de transição */
+  overflow: hidden; /* Impede que a imagem ultrapasse os limites */
+}
+
+/* Efeito de hover para aumentar o card e adicionar sombra */
+.mesa-card:hover {
+  transform: translateY(-5px); /* Levanta o card */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Aumenta a sombra */
+}
+
+/* Estilo do título da mesa */
+.mesa-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333; /* Cor do título */
+}
+
+/* Status da mesa */
+.mesa-status {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #28a745; /* Verde para mesas disponíveis */
+  margin-bottom: 10px;
+}
+
+/* Capacidade da mesa */
+.mesa-capacidade {
+  font-size: 1rem;
+  font-weight: normal;
+  color: #666; /* Cor suave para a capacidade */
+  margin-bottom: 15px;
+}
+
+/* Botões de ação */
+.mesa-btn {
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  border-radius: 5px; /* Arredonda os botões */
+}
+
+/* Ajustes para os botões */
+.mesa-btn:hover {
+  opacity: 0.8; /* Efeito de hover para os botões */
+}
+
+/* Paginação */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.page-item.disabled .page-link {
+  cursor: not-allowed;
+}
+
+.page-item.active .page-link {
+  background-color: #28a745; /* Cor ativa na página */
+  color: white;
+  border-color: #28a745;
+}
+
+.page-item .page-link {
+  color: #333; /* Cor normal do texto da página */
+}
+
+/* Estilo do modal */
+.modal {
+  background: rgba(0, 0, 0, 0.5); /* Fundo escuro para o modal */
+}
+
+.modal-content {
+  border-radius: 10px;
+}
+
+.modal-body {
+  max-height: 800px; /* Limita a altura do conteúdo */
+  overflow-y: auto;  /* Adiciona rolagem caso tenha muitos produtos */
+}
+
+.modal-header .close {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro do modal */
+}
+
+/* Estilo para os botões de aumentar e diminuir */
+.btn-outline-secondary {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  color: #007bff;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Estilo para o campo de entrada (input) do contador */
+input[type="number"] {
+  text-align: center;
+  font-size: 16px;
+  padding: 5px;
+  width: 50px;
+  height: 35px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+/* Ajustando a distância entre o input e os botões "+" e "-" */
+.d-flex {
+  display: flex;
+  align-items: center;
+}
+
+/* Ajuste de estilo nos itens da lista de produtos */
+.list-group-item {
+  padding: 10px 15px;
+}
+
+/* Estilo para os botões de adicionar/remover no modal */
+.btn-success, .btn-danger {
+  font-size: 14px;
+  padding: 5px 10px;
+}
+
+
+
+/* Estilo do modal */
+.modal {
+  background: rgba(0, 0, 0, 0.5); /* Fundo escuro para o modal */
+}
+
+.modal-content {
+  border-radius: 10px;
+}
+
+.modal-body {
+  max-height: 800px; /* Limita a altura do conteúdo */
+  overflow-y: auto;  /* Adiciona rolagem caso tenha muitos produtos */
+}
+
+.modal-header .close {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro do modal */
+}
+
+/* Tamanho maior para o modal */
+.modal-dialog.modal-lg { 
+  max-width: 90%; /* Ajustei a largura para ocupar 90% da tela */
+  width: 90%;
+}
+
+.modal-header {
+  background-color: #28a745;
+  color: white;
+}
+
+.modal-footer {
+  text-align: right;
+}
+
+.modal-body {
+  padding: 15px;
+}
+
+.btn-cancelar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.2rem;
+  border: none;
+  background: transparent;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+
+.list-group-item {
+  padding: 10px 15px;
+}
+
+.list-group-item .btn {
+  min-width: 32px;
+  text-align: center;
+  padding: 4px 8px;
+}

@@ -1,0 +1,47 @@
+<div class="row">
+  <div class="col-xl-12">
+    <app-card cardTitle="Pedidos" [options]="false">
+      <div class="row">
+        <!-- Loop pelos pedidos -->
+        <div *ngFor="let pedido of pedidosPaginados" class="col-md-4 mb-4">
+          <div class="card product-card p-3 position-relative" [ngClass]="getStatusClass(pedido.status)" (click)="alterarStatus(pedido)">
+            <!-- Botão Cancelar -->
+            <button class="btn btn-danger btn-cancelar" (click)="cancelarPedido(pedido)">❌</button>
+            <div class="card-body text-center">
+              <h5 class="card-title fw-bold">Mesa: {{ pedido.numero }}</h5>
+          
+              <!-- Lista de produtos do pedido -->
+              <ul class="list-unstyled">
+                <li *ngFor="let produto of pedido.produtos">
+                  <h5 class="card-title fw-bold">{{ produto.quantidade }} - {{ produto.nome }} - R$ {{ produto.preco.toFixed(2) }}</h5>
+                </li>
+              </ul>
+
+              <h5 class="card-title fw-bold">OBSERVAÇÕES: {{ pedido.observacao }}</h5>
+
+              <!-- Botão Finalizar -->
+              <div class="mt-3">
+                <button class="btn btn-primary btn-lg" (click)="finalizarPedido(pedido, $event)">Finalizar Pedido</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </app-card>
+  </div>
+</div>
+
+<!-- Paginação -->
+<nav aria-label="Page navigation" class="mt-3">
+  <ul class="pagination justify-content-center">
+    <li class="page-item" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+      <span class="page-link">Anterior</span>
+    </li>
+    <li class="page-item" *ngFor="let page of pages" [class.active]="page === currentPage" (click)="changePage(page)">
+      <span class="page-link">{{ page }}</span>
+    </li>
+    <li class="page-item" [class.disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+      <span class="page-link">Próximo</span>
+    </li>
+  </ul>
+</nav>

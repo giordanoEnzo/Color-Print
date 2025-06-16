@@ -1,0 +1,85 @@
+<div class="row">
+  <div class="col-xl-12">
+    <app-card cardTitle="Produtos" [options]="false" [buttonh]="true" buttonTitle="Adicionar produto" [buttonAction]="toggleFormulario.bind(this)">
+
+      <div class="row">
+        <div *ngFor="let produto of produtosPaginados" class="col-md-4 mb-4">
+          <div class="card product-card">
+            <!-- Imagem do produto -->
+            <img [src]="produto.imagemUrl" alt="{{ produto.nome }}" class="card-img-top product-image" />
+            
+            <!-- Corpo do card com título, preço e descrição -->
+            <div class="card-body">
+              <h5 class="card-title product-title">{{ produto.nome }}</h5>
+              <p class="card-text product-price">{{ produto.preco | currency: 'BRL' }}</p>
+              <p class="card-text product-description">{{ produto.descricao }}</p>
+              
+              <!-- Botões de ação -->
+              <div class="d-flex justify-content-between">
+                <button class="btn btn-danger btn-lg" (click)="deletarProduto(produto.id_produto)">
+                  Excluir
+                </button>
+                <button class="btn btn-success btn-lg" (click)="editarProduto(produto)">
+                  Editar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </app-card>
+  </div>
+</div>
+
+
+<div *ngIf="mostrarFormulario" class="row">
+  <div class="col-sm-12">
+    <app-card cardTitle="Adicionar Produto" [options]="false">
+      <div class="form-container">
+        <form (ngSubmit)="adicionarProduto()">
+          <div class="form-group">
+            <label for="nome">Nome</label>
+            <input id="nome" class="form-control" [(ngModel)]="novoProduto.nome" name="nome" required />
+          </div>
+          <div class="form-group">
+            <label for="descricao">Descrição</label>
+            <textarea id="descricao" class="form-control" [(ngModel)]="novoProduto.descricao" name="descricao"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="preco">Preço</label>
+            <input id="preco" type="number" class="form-control" [(ngModel)]="novoProduto.preco" name="preco" required />
+          </div>
+          <div class="form-group">
+            <label for="quantidade_estoque">Quantidade em Estoque</label>
+            <input id="quantidade_estoque" type="number" class="form-control" [(ngModel)]="novoProduto.quantidade_estoque" name="quantidade_estoque" required />
+          </div>
+          <!-- Campo de upload de imagem -->
+          <div class="form-group">
+            <label for="imagem">Imagem do Produto</label>
+            <input type="file" class="form-control" (change)="onFileSelected($event)" name="imagem" />
+          </div>
+          <button type="submit" class="btn btn-success">Salvar</button>
+          <button type="button" class="btn btn-secondary" (click)="toggleFormulario()">Cancelar</button>
+        </form>
+      </div>
+    </app-card>
+  </div>
+</div>
+
+
+
+<!-- Paginação original -->
+<nav aria-label="Page navigation" class="mt-3">
+  <ul class="pagination justify-content-center">
+    <li class="page-item" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+      <span class="page-link">Anterior</span>
+    </li>
+    <li class="page-item" *ngFor="let page of pages" [class.active]="page === currentPage" (click)="changePage(page)">
+      <span class="page-link">{{ page }}</span>
+    </li>
+    <li class="page-item" [class.disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+      <span class="page-link">Próximo</span>
+    </li>
+  </ul>
+</nav>
+

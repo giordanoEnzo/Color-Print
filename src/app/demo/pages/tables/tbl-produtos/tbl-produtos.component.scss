@@ -1,0 +1,81 @@
+/* Estilo do card de produto */
+.product-card {
+  border: 1px solid #ddd; /* Borda fina */
+  border-radius: 10px; /* Bordas arredondadas */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Efeito de transição */
+  overflow: hidden; /* Impede que a imagem ultrapasse os limites */
+}
+
+/* Efeito de hover para aumentar o card e adicionar sombra */
+.product-card:hover {
+  transform: translateY(-5px); /* Levanta o card */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Aumenta a sombra */
+}
+
+/* Imagem com bordas arredondadas */
+.product-image {
+  border-radius: 10px; /* Arredonda as bordas da imagem */
+  width: 100%; /* A imagem ocupa toda a largura do card */
+  height: 400px; /* Altura fixa para a imagem */
+  object-fit: cover; /* Garante que a imagem preenche sem distorcer */
+}
+
+/* Estilo do título do produto */
+.product-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333; /* Cor do título */
+}
+
+/* Preço do produto */
+.product-price {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #28a745; /* Verde para preço */
+  margin-bottom: 10px;
+}
+
+/* Descrição do produto */
+.product-description {
+  font-size: 0.9rem;
+  color: #666; /* Texto mais suave */
+  margin-bottom: 15px;
+  height: 60px; /* Limita a altura da descrição */
+  overflow: hidden; /* Esconde o texto que ultrapassar */
+}
+
+/* Botões de ação */
+.product-btn {
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  border-radius: 5px; /* Arredonda os botões */
+}
+
+/* Ajustes para os botões */
+.product-btn:hover {
+  opacity: 0.8; /* Efeito de hover para os botões */
+}
+
+/* Paginação */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.page-item.disabled .page-link {
+  cursor: not-allowed;
+}
+
+
+.page-item.active .page-link {
+  background-color: #28a745; /* Cor ativa na página */
+  color: white;
+  border-color: #28a745;
+}
+
+.page-item .page-link {
+  color: #333; /* Cor normal do texto da página */
+}

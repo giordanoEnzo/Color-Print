@@ -1,0 +1,70 @@
+<div class="auth-wrapper">
+  <div class="auth-content">
+    <div class="auth-bg">
+      <span class="r"></span>
+      <span class="r s"></span>
+      <span class="r s"></span>
+      <span class="r"></span>
+    </div>
+    <div class="card">
+      <div class="card-body text-center">
+        <div class="mb-4">
+          <i class="feather icon-unlock auth-icon"></i>
+        </div>
+        <h3 class="mb-4">Login</h3>
+
+        <!-- ALERTAS SUCESSO/ERRO -->
+        <div *ngIf="sucesso" class="alert alert-success">
+          {{ sucesso }}
+        </div>
+
+        <div *ngIf="erro" class="alert alert-danger">
+          {{ erro }}
+        </div>
+
+        <!-- Campo Email -->
+        <div class="input-group mb-3">
+          <input
+            type="email"
+            class="form-control"
+            placeholder="Email"
+            [(ngModel)]="email"
+            required
+          />
+        </div>
+
+        <!-- Campo Senha -->
+        <div class="input-group mb-4">
+          <input
+            type="password"
+            class="form-control"
+            placeholder="Senha"
+            [(ngModel)]="senha"
+            required
+          />
+        </div>
+
+        <!-- Checkbox -->
+        <div class="form-group text-start mb-4">
+          <div class="checkbox checkbox-fill d-inline">
+            <input type="checkbox" name="checkbox-fill-1" id="checkbox-fill-a1" checked />
+            <label for="checkbox-fill-a1" class="cr">Salvar dados</label>
+          </div>
+        </div>
+
+        <!-- Botão Login -->
+        <button class="btn btn-primary mb-4" (click)="onLogin()">Login</button>
+
+        <!-- Links -->
+        <p class="mb-2 text-muted">
+          Esqueceu a senha?
+          <a [routerLink]="['/auth/reset-password']">Redefinir</a>
+        </p>
+        <p class="mb-0 text-muted">
+          Ainda não tem uma conta?
+          <a [routerLink]="['/auth/signup']">Cadastre-se</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
