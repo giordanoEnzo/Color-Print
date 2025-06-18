@@ -38,7 +38,7 @@ export default class AuthSigninComponent {
           } else if (tipo === 'FUNCIONARIO') {
             this.router.navigate(['/tables/mesa']);
           } else {
-            this.router.navigate(['/caramelo']);
+            this.router.navigate(['/home']);
           }
         }, 1000); // ✅ tempo para exibir o toast antes de redirecionar
       },

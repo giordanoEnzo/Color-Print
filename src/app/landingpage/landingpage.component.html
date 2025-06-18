@@ -1,292 +1,151 @@
 
-<header class="header">
-  <div class="logo">CARAMELO DOG & BURGUER</div>
-  <nav class="nav">
+<div class="promo-bar">
+  <span>DESTAQUE DE PROMOÇÃO</span>
+</div>
 
+<header class="header">
+  <div class="logo">COLOR PRINT.</div>
+  <nav class="nav">
+    <a href="#">HOME</a>
+    <a href="#">PROMOÇÕES</a>
+    <a href="#">SOBRE</a>
+    <a href="#">CONTATO</a>
+    <a href="#">About Us</a>
   </nav>
+  <div class="search-cart">
+    <span class="icon">🛒</span>
+  </div>
 </header>
 
 <section class="banner fade-in">
   <img src="assets/images/banner.jpg" alt="Banner" class="banner-bg" />
-
   <div class="highlight-card">
-    <img [src]="produtoDestaque.imagemUrl" alt="Produto em destaque" />
-    <h4>{{ produtoDestaque.nome }}</h4>
-    <p>R$ {{ produtoDestaque.preco | number:'1.2-2' }}</p>
-    <button class="btn-pulse" (click)="adicionar(produtoDestaque)">ADICIONAR CARRINHO</button>
+    <img src="assets/images/card.jpg" alt="Produto em destaque" />
+    <h4>Signal DL</h4>
+    <p>R$ 129,00</p>
+    <button class="btn-pulse">ADICIONAR CARRINHO</button>
   </div>
-  
+</section>
+
+<section class="bestsellers fade-in">
+  <div class="section-header">
+    <h3>Mais vendidos</h3>
+    <a href="#">VIEW ALL →</a>
+  </div>
+
+  <div class="products-grid">
+    <div *ngFor="let produto of maisVendidos" class="product-card">
+      <div class="product-image-container">
+        <img [src]="produto.imagem" [alt]="produto.nome" />
+      </div>
+      <h4 class="product-name">{{ produto.nome }}</h4>
+      <p class="product-price">{{ produto.preco | currency:'BRL' }}</p>
+      <button class="add-to-cart-btn" (click)="adicionarAoCarrinho(produto)">
+        ADICIONAR CARRINHO
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="bestsellers fade-in">
+  <div class="section-header">
+    <h3>Mais vendidos</h3>
+    <a href="#">VIEW ALL →</a>
+  </div>
+
+  <div class="products-grid">
+    <div *ngFor="let produto of maisVendidos" class="product-card">
+      <div class="product-image-container">
+        <img [src]="produto.imagem" [alt]="produto.nome" />
+      </div>
+      <h4 class="product-name">{{ produto.nome }}</h4>
+      <p class="product-price">{{ produto.preco | currency:'BRL' }}</p>
+      <button class="add-to-cart-btn" (click)="adicionarAoCarrinho(produto)">
+        ADICIONAR CARRINHO
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="bestsellers fade-in">
+  <div class="section-header">
+    <h3>Mais vendidos</h3>
+    <a href="#">VIEW ALL →</a>
+  </div>
+
+  <div class="products-grid">
+    <div *ngFor="let produto of maisVendidos" class="product-card">
+      <div class="product-image-container">
+        <img [src]="produto.imagem" [alt]="produto.nome" />
+      </div>
+      <h4 class="product-name">{{ produto.nome }}</h4>
+      <p class="product-price">{{ produto.preco | currency:'BRL' }}</p>
+      <button class="add-to-cart-btn" (click)="adicionarAoCarrinho(produto)">
+        ADICIONAR CARRINHO
+      </button>
+    </div>
+  </div>
 </section>
 
 
-<div class="container">
-
-  <h2 class="text-center my-4">Hot-Dogs</h2>
-
-  <div class="row">
-    <div class="col-md-4 mb-4" *ngFor="let produto of dogs">
-      <div class="card h-100 shadow-sm">
-        <img src="assets/images/lanches.jpg"  class="card-img-top" alt="{{ produto.nome }}"/>
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">{{ produto.nome }}</h5>
-          <p class="card-text text-muted">
-            {{ produto.descricao }}
-          </p>
-          <div class="mt-auto">
-            <strong class="d-block text-success">
-              R$ {{ produto.preco | number: '1.2-2' }}
-            </strong>
-            <button class="btn btn-primary mt-2 w-100" (click)="adicionar(produto)">Adicionar</button>
-          </div>
-        </div>
-      </div>
-    </div>
+<section class="highlight-offer fade-in">
+  <div class="offer-text">
+    <h2>CARTÃO DE VISITA 20% OFF</h2>
+    <p>Exclusive</p>
+    <button class="buy-button btn-pulse">comprar agora</button>
   </div>
-
-
-  <h2 class="text-center my-4">Lanches</h2>
-
-  <div class="row">
-    <div class="col-md-4 mb-4" *ngFor="let produto of lanches">
-      <div class="card h-100 shadow-sm">
-        <img src="assets/images/lanches.jpg"  class="card-img-top" alt="{{ produto.nome }}"/>
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">{{ produto.nome }}</h5>
-          <p class="card-text text-muted">
-            {{ produto.descricao }}
-          </p>
-          <div class="mt-auto">
-            <strong class="d-block text-success">
-              R$ {{ produto.preco | number: '1.2-2' }}
-            </strong>
-            <button class="btn btn-primary mt-2 w-100" (click)="adicionar(produto)">Adicionar</button>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="offer-image">
+    <img src="assets/images/produto4.jpg" alt="Cartão de visita em promoção" />
   </div>
-
-
-  <h2 class="text-center my-4">Frango</h2>
-
-  <div class="row">
-    <div class="col-md-4 mb-4" *ngFor="let produto of frango">
-      <div class="card h-100 shadow-sm">
-        <img src="assets/images/lanches.jpg"  class="card-img-top" alt="{{ produto.nome }}"/>
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">{{ produto.nome }}</h5>
-          <p class="card-text text-muted">
-            {{ produto.descricao }}
-          </p>
-          <div class="mt-auto">
-            <strong class="d-block text-success">
-              R$ {{ produto.preco | number: '1.2-2' }}
-            </strong>
-            <button class="btn btn-primary mt-2 w-100" (click)="adicionar(produto)">Adicionar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <h2 class="text-center my-4">Contra Filé</h2>
-
-  <div class="row">
-    <div class="col-md-4 mb-4" *ngFor="let produto of contra">
-      <div class="card h-100 shadow-sm">
-        <img src="assets/images/lanches.jpg"  class="card-img-top" alt="{{ produto.nome }}"/>
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">{{ produto.nome }}</h5>
-          <p class="card-text text-muted">
-            {{ produto.descricao }}
-          </p>
-          <div class="mt-auto">
-            <strong class="d-block text-success">
-              R$ {{ produto.preco | number: '1.2-2' }}
-            </strong>
-            <button class="btn btn-primary mt-2 w-100" (click)="adicionar(produto)">Adicionar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <h2 class="text-center my-4">Doces</h2>
-
-  <div class="row">
-    <div class="col-md-4 mb-4" *ngFor="let produto of doce">
-      <div class="card h-100 shadow-sm">
-        <img src="assets/images/lanches.jpg"  class="card-img-top" alt="{{ produto.nome }}"/>
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">{{ produto.nome }}</h5>
-          <p class="card-text text-muted">
-            {{ produto.descricao }}
-          </p>
-          <div class="mt-auto">
-            <strong class="d-block text-success">
-              R$ {{ produto.preco | number: '1.2-2' }}
-            </strong>
-            <button class="btn btn-primary mt-2 w-100" (click)="adicionar(produto)">Adicionar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <h2 class="text-center my-4">Bebidas</h2>
-
-  <div class="row">
-    <div class="col-md-4 mb-4" *ngFor="let produto of bebidas">
-      <div class="card h-100 shadow-sm">
-        <img src="assets/images/lanches.jpg"  class="card-img-top" alt="{{ produto.nome }}"/>
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">{{ produto.nome }}</h5>
-          <p class="card-text text-muted">
-            {{ produto.descricao }}
-          </p>
-          <div class="mt-auto">
-            <strong class="d-block text-success">
-              R$ {{ produto.preco | number: '1.2-2' }}
-            </strong>
-            <button class="btn btn-primary mt-2 w-100" (click)="adicionar(produto)">Adicionar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-
-
-</div>
-
+</section>
 
 
 <footer class="site-footer">
+  <div class="footer-content">
+    <div class="footer-column">
+      <h4>LOJA</h4>
+      <ul>
+        <li><a href="#">All products</a></li>
+        <li><a href="#">Best Sellers</a></li>
+      </ul>
+    </div>
+    <div class="footer-column">
+      <h4>POLITICAS</h4>
+      <ul>
+        <li><a href="#">Entregas</a></li>
+        <li><a href="#">Pedidos por demandas</a></li>
+        <li><a href="#">Orçamentos</a></li>
+      </ul>
+    </div>
+    <div class="footer-column">
+      <h4>CONTACT</h4>
+      <p>Rua Lourenço Dias, 640,<br/> Sala 6 , Araras - SP</p>
+    </div>
+    <div class="footer-column">
+      <h4>SOCIAL</h4>
+      <ul>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">Facebook</a></li>
+        <li><a href="#">X</a></li>
+        <li><a href="#">Tik Tok</a></li>
+      </ul>
+    </div>
+    <div class="footer-column">
+      <h4>ORÇAMENTOS</h4>
+      <p>Faça seu orçamento online</p>
+      <form>
+        <input type="email" placeholder="Email Address *" required />
+        <label>
+          <input type="checkbox" />
+          Yes, subscribe me to your newsletter.
+        </label>
+        <button type="submit">SIGN UP</button>
+      </form>
+    </div>
+  </div>
   <div class="footer-bottom">
-    <h2>CARAMELO DOG BURGUER.</h2>
+    <h2>COLOR PRINT.</h2>
     <p>© 2035 by Ramirez Stwart</p>
   </div>
 </footer>
-
-<!-- Carrinho Flutuante -->
-<div class="cart-float" [class.open]="carrinhoAberto">
-  <div class="cart-header">
-    <h5>Seu Carrinho 🛒</h5>
-    <button class="close-btn" (click)="toggleCarrinho()">✕</button>
-  </div>
-
-  <div class="cart-body" *ngIf="carrinho.length > 0; else vazio">
-    <div *ngFor="let item of carrinho" class="cart-item">
-      <div class="cart-item-info">
-        <strong>{{ item.nome }}</strong>
-        <div class="quantity-controls">
-          <button (click)="decrementarQuantidade(item)">−</button>
-          <span>{{ item.quantidade }}</span>
-          <button (click)="incrementarQuantidade(item)">+</button>
-        </div>
-        <p>R$ {{ item.preco * item.quantidade | number:'1.2-2' }}</p>
-      </div>
-      <button class="remove-btn" (click)="removerDoCarrinho(item)">❌</button>
-    </div>
-    <div class="cart-total">
-      <strong>Total: R$ {{ calcularTotal() | number:'1.2-2' }}</strong>
-    </div>
-  </div>
-
-  <ng-template #vazio>
-    <p class="text-muted text-center mt-3">Carrinho vazio.</p>
-  </ng-template>
-
-  <button class="btn btn-success mt-3 w-100" (click)="abrirModal()">Finalizar Pedido</button>
-</div>
-
-<!-- Botão flutuante -->
-<button class="cart-toggle" (click)="toggleCarrinho()">
- Carrinho 🛒 <span *ngIf="carrinho.length > 0">{{ carrinho.length }}</span>
-</button>
-
-
-
-<div class="modal-backdrop" *ngIf="mostrarModal">
-  <div class="modal-content">
-    <h3>Finalizar Pedido</h3>
-    <form (ngSubmit)="finalizarPedido()" #formulario="ngForm">
-      <div class="mb-3">
-        <label>Nome:</label>
-        <input type="text" class="form-control" [(ngModel)]="dadosCliente.nome" name="nome" required />
-      </div>
-
-      <div class="mb-3">
-        <label>Telefone:</label>
-        <input type="tel" class="form-control" [(ngModel)]="dadosCliente.telefone" mask="(00) 00000-0000"  placeholder="000.000.000-00" name="telefone" required />
-      </div>
-
-      <div class="mb-3">
-        <label>CPF:</label>
-        <input type="text" class="form-control" [(ngModel)]="dadosCliente.cpf"  mask="000.000.000-00"   placeholder="000.000.000-00" name="cpf" required />
-      </div>
-
-      <div class="mb-3">
-        <label>Tipo de Pedido:</label>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="tipoEntrega" [(ngModel)]="dadosCliente.tipoEntrega" value="Entrega" required />
-          <label class="form-check-label">Entrega</label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="tipoEntrega" [(ngModel)]="dadosCliente.tipoEntrega" value="Retirada" />
-          <label class="form-check-label">Retirada</label>
-        </div>
-      </div>
-
-      <div class="mb-3" *ngIf="dadosCliente.tipoEntrega === 'Entrega'">
-        <label>Endereço:</label>
-        <textarea class="form-control" [(ngModel)]="dadosCliente.endereco" name="endereco" required></textarea>
-      </div>
-
-
-      <div class="mb-3">
-        <label>Forma de pagamento:</label>
-        <select class="form-control" [(ngModel)]="dadosCliente.pagamento" name="pagamento" required>
-          <option value="" disabled selected>Selecione...</option>
-          <option value="Pix">Pix</option>
-          <option value="Dinheiro">Dinheiro</option>
-          <option value="Cartão Crédito">Cartão Crédito</option>
-          <option value="Cartão Débito">Cartão Débito</option>
-        </select>
-      </div>
-
-      <div class="mb-3" *ngIf="dadosCliente.pagamento === 'Dinheiro'">
-        <label>Troco para quanto?</label>
-        <input type="number" class="form-control" [(ngModel)]="dadosCliente.troco" name="troco" placeholder="Ex: 50.00 separado por ." />
-      </div>
-
-      <div class="mb-3">
-        <label>Observações</label>
-        <textarea class="form-control" [(ngModel)]="dadosCliente.observacao" name="observacao" rows="3" placeholder="Ex: Sem maionese, entregar no portão..."></textarea>
-      </div>
-
-      <div class="mb-3 text-center">
-        <p *ngIf="dadosCliente.tipoEntrega === 'Entrega'">Taxa de entrega: R$ {{ taxa_entrega | number: '1.2-2' }}</p>
-        <strong>Total do Pedido:</strong>
-        <span style="font-size: 1.2rem;">R$ {{ calcularTotalCarrinho() | number:'1.2-2' }}</span>
-      </div>
-
-      <div *ngIf="pixLinkGerado" class="mt-3 text-center">
-        <a [href]="pixLinkGerado" target="_blank" rel="noopener noreferrer" class="btn btn-success">
-          Clique aqui para efetuar o pagamento via PIX e concluir seu pedido
-        </a>
-      </div>
-
-
-      <button type="submit" class="btn btn-success w-100 mt-3">Finalizar Pedido</button>
-      <button  class="btn btn-danger w-100 mt-3" (click)="fecharModal()">Cancelar Pedido</button>
-    </form>
-
-  </div>
-</div>
-
-
 

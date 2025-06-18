@@ -63,7 +63,7 @@ const routes: Routes = [
         loadChildren: () => import('./demo/pages/authentication/authentication.module').then((m) => m.AuthenticationModule)
       },
       {
-        path: 'caramelo',
+        path: 'home',
         loadChildren: () => import('./landingpage/landingpage.module').then(m => m.LandingpageModule)
       }
     ]

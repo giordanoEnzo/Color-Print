@@ -26,7 +26,7 @@ export class AuthGuard implements CanActivate {
 
     // Se a rota exige roles e o role do usuário não está incluso
     if (allowedRoles && !allowedRoles.includes(userRole)) {
-      this.router.navigate(['/caramelo']); // redireciona para rota pública
+      this.router.navigate(['/home']); // redireciona para rota pública
       return false;
     }
 
