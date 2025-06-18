@@ -54,4 +54,11 @@ export class ProdutoService {
   getUsuarios(): Observable<any> {
     return this.http.get(`${this.apiUrl}/usuarios`);
   }
+
+
+  // Método para obter categorias com seus respectivos produtos
+  getCategoriasComProdutos(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/categorias-com-produtos`);
+  }
+  
 }

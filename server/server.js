@@ -196,6 +196,34 @@ app.post('/api/login', async (req, res) => {
 
 
 
+// Endpoint para listar categorias e seus produtos
+app.get('/api/categorias-com-produtos', async (req, res) => {
+  try {
+    const [categorias] = await db.promise().query('SELECT * FROM categorias WHERE ativo = 1');
+
+    const categoriasComProdutos = await Promise.all(
+      categorias.map(async (categoria) => {
+        const [produtos] = await db.promise().query(
+          'SELECT * FROM produtos WHERE id_categoria = ?',
+          [categoria.id_categoria]
+        );
+
+        return {
+          ...categoria,
+          produtos
+        };
+      })
+    );
+
+    res.json(categoriasComProdutos);
+  } catch (error) {
+    console.error('Erro ao buscar categorias e produtos:', error);
+    res.status(500).json({ erro: 'Erro interno ao buscar dados.' });
+  }
+});
+
+
+
 const ip = '0.0.0.0'; // Permite conexões externas
 
 app.listen(port, '0.0.0.0', () => {

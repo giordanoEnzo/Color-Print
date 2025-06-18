@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
+import { ProdutoService } from 'src/app/services/produto.service';
 
 @Component({
   selector: 'app-landingpage',
@@ -9,6 +10,7 @@ import { ToastrService } from 'ngx-toastr';
 export class LandingpageComponent implements OnInit {
   
   maisVendidos: any[] = [];
+  categoriasComProdutos: any[] = [];
 
   destaque: any = {
     nome: 'Signal DL',
@@ -29,34 +31,25 @@ export class LandingpageComponent implements OnInit {
   mostrarModal = false;
 
   constructor(
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private produtoService: ProdutoService
   ) {}
 
   ngOnInit(): void {
-
-    this.maisVendidos = [  
-      {
-        id_produto: 1,
-        nome: 'Cartão de Visita Premium',
-        preco: 49.90,
-        imagem: 'assets/images/produto1.jpg'
-      },
-      {
-        id_produto: 2,
-        nome: 'Banner Promocional',
-        preco: 89.90,
-        imagem: 'assets/images/produto2.jpg'
-      },
-      {
-        id_produto: 3,
-        nome: 'Imã de Geladeira',
-        preco: 29.90,
-        imagem: 'assets/images/produto3.jpg'
-      }
-    ];
-
+    this.carregarCategoriasComProdutos();
   }
 
+  carregarCategoriasComProdutos(): void {
+    this.produtoService.getCategoriasComProdutos().subscribe({
+      next: (res) => {
+        this.categoriasComProdutos = res;
+        console.log('Categorias e produtos:', res); // opcional para debug
+      },
+      error: (err) => {
+        console.error('Erro ao carregar categorias e produtos:', err);
+      }
+    });
+  }
 
   adicionarAoCarrinho(produto: any) {
     const existente = this.carrinho.find(p => p.id_produto === produto.id_produto);

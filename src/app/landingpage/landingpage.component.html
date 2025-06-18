@@ -28,66 +28,25 @@
   </div>
 </section>
 
-<section class="bestsellers fade-in">
+<section class="bestsellers fade-in" *ngFor="let categoria of categoriasComProdutos">
   <div class="section-header">
-    <h3>Mais vendidos</h3>
-    <a href="#">VER TODOS →</a>
+    <h3>{{ categoria.nome }}</h3>
+    <a [routerLink]="['/categoria', categoria.id]">VER TODOS →</a>
   </div>
 
   <div class="products-grid">
-    <div *ngFor="let produto of maisVendidos" class="product-card">
+    <div *ngFor="let produto of categoria.produtos.slice(0, 3)" class="product-card">
       <div class="product-image-container">
         <img [src]="produto.imagem" [alt]="produto.nome" />
       </div>
       <h4 class="product-name">{{ produto.nome }}</h4>
-      <p class="product-price">{{ produto.preco | currency:'BRL' }}</p>
+      <p class="product-price">{{ produto.preco | currency: 'BRL' }}</p>
       <button class="add-to-cart-btn" (click)="adicionarAoCarrinho(produto)">
         ADICIONAR CARRINHO
       </button>
     </div>
   </div>
 </section>
-
-<section class="bestsellers fade-in">
-  <div class="section-header">
-    <h3>Categoria 1A</h3>
-    <a href="#">VER TODOS →</a>
-  </div>
-
-  <div class="products-grid">
-    <div *ngFor="let produto of maisVendidos" class="product-card">
-      <div class="product-image-container">
-        <img [src]="produto.imagem" [alt]="produto.nome" />
-      </div>
-      <h4 class="product-name">{{ produto.nome }}</h4>
-      <p class="product-price">{{ produto.preco | currency:'BRL' }}</p>
-      <button class="add-to-cart-btn" (click)="adicionarAoCarrinho(produto)">
-        ADICIONAR CARRINHO
-      </button>
-    </div>
-  </div>
-</section>
-
-<section class="bestsellers fade-in">
-  <div class="section-header">
-    <h3>Categoria 2</h3>
-    <a href="#">VER TODOS →</a>
-  </div>
-
-  <div class="products-grid">
-    <div *ngFor="let produto of maisVendidos" class="product-card">
-      <div class="product-image-container">
-        <img [src]="produto.imagem" [alt]="produto.nome" />
-      </div>
-      <h4 class="product-name">{{ produto.nome }}</h4>
-      <p class="product-price">{{ produto.preco | currency:'BRL' }}</p>
-      <button class="add-to-cart-btn" (click)="adicionarAoCarrinho(produto)">
-        ADICIONAR CARRINHO
-      </button>
-    </div>
-  </div>
-</section>
-
 
 <section class="highlight-offer fade-in">
   <div class="offer-text">
