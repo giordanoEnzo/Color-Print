@@ -56,29 +56,61 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 0.5rem 2rem;
   background: $white;
   border-bottom: 1px solid #eee;
   position: sticky;
   top: 0;
   z-index: 100;
+  height: 80px;
 
   .logo {
-    font-weight: bold;
-    font-size: 1.5rem;
-    color: $primary-color;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &-gif {
+      height: 120px;
+      width: auto;
+      transition: $transition;
+      object-fit: contain;
+      
+      &:hover {
+        transform: scale(1.05);
+        opacity: 0.9;
+      }
+    }
   }
 
   .nav {
+    display: flex;
+    gap: 1.5rem;
+
     a {
-      margin: 0 1rem;
+      padding: 0.5rem 0;
       text-decoration: none;
       color: $text-color;
       font-weight: 500;
+      font-size: 0.95rem;
+      position: relative;
       transition: $transition;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
 
       &:hover {
         color: $primary-color;
+        
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: $primary-color;
+          animation: underline 0.3s ease-out;
+        }
       }
     }
   }
@@ -86,16 +118,72 @@ body {
   .search-cart {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
 
     .icon {
-      font-size: 1.2rem;
+      font-size: 1.5rem;
       cursor: pointer;
       transition: $transition;
+      position: relative;
 
       &:hover {
         color: $primary-color;
+        transform: scale(1.1);
       }
+
+      &::after {
+        content: attr(data-count);
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: $primary-color;
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+@keyframes underline {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    height: auto;
+    padding: 1rem;
+    gap: 1rem;
+
+    .logo {
+      height: auto;
+      
+      &-gif {
+        height: 60px;
+      }
+    }
+
+    .nav {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.8rem;
+      
+      a {
+        font-size: 0.85rem;
+        padding: 0.3rem;
+      }
+    }
+
+    .search-cart {
+      margin-top: 0.5rem;
     }
   }
 }
