@@ -41,7 +41,6 @@ app.options('*', cors(corsOptions));
 // Middleware para habilitar JSON
 app.use(express.json());
 
-
 // Configuração de conexão com o MySQL usando pool
 const db = mysql.createPool({
   host: process.env.DB_HOST,
@@ -63,6 +62,50 @@ const client = new MercadoPagoConfig({
         timeout: 5000
     }
 });
+
+
+app.post('/api/checkout-pro', async (req, res) => {
+  const { items } = req.body;
+
+  try {
+    const preference = {
+      items: items.map(item => ({
+        title: `${item.nome} - ${item.tamanho}`,
+        quantity: 1,
+        unit_price: Number(item.preco),
+        currency_id: 'BRL'
+      })),
+      back_urls: {
+        success: 'https://seusite.com/sucesso',
+        failure: 'https://seusite.com/falha',
+        pending: 'https://seusite.com/pendente'
+      },
+      auto_return: 'approved'
+    };
+
+    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(preference)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Erro ao criar preferência');
+    }
+
+    res.json({ init_point: data.init_point });
+
+  } catch (err) {
+    console.error('Erro ao criar checkout:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 
 app.post('/api/pix', async (req, res) => {

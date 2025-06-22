@@ -131,21 +131,6 @@ body {
         transform: scale(1.1);
       }
 
-      &::after {
-        content: attr(data-count);
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background: $primary-color;
-        color: white;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        font-size: 0.7rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
     }
   }
 }
@@ -612,3 +597,369 @@ body {
     gap: 1.5rem;
   }
 }
+
+.filtros-container {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin: 2rem auto;
+  max-width: 1200px;
+  padding: 0 1rem;
+}
+
+.filtros-categorias {
+  width: 200px;
+  padding-right: 1rem;
+  border-right: 1px solid #ccc;
+}
+
+.filtros-categorias h4 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.filtros-categorias ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filtros-categorias li {
+  cursor: pointer;
+  padding: 0.5rem 0;
+  color: #333;
+  transition: color 0.3s;
+}
+
+.filtros-categorias li:hover,
+.filtros-categorias li.ativo {
+  color: #007bff;
+  font-weight: 600;
+}
+
+/* Produtos organizados em grid */
+.bestsellers {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-right: 1rem;
+}
+
+.section-header a {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.product-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+}
+
+.product-image-container {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.product-image-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.product-name {
+  font-size: 1rem;
+  margin: 0.8rem 0 0.4rem;
+  font-weight: 500;
+}
+
+.product-price {
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 1rem;
+}
+
+.add-to-cart-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #0056b3;
+}
+
+
+
+/* Variáveis globais */
+$primary-color: #007bff;
+$secondary-color: #0056b3;
+$text-color: #333;
+$light-gray: #f8f8f8;
+$dark-bg: #1a1a1a;
+$white: #fff;
+$border-radius: 10px;
+$transition: all 0.3s ease;
+
+/* Mixins e placeholders */
+%btn-base {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: $transition;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+%card-base {
+  background: $white;
+  border-radius: $border-radius;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: $transition;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  }
+}
+
+/* Modal - simplificado para funcionar no layout atual */
+.product-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  width: 100%;
+  max-width: 500px;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  text-align: center;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #444;
+  transition: color 0.3s;
+
+  &:hover {
+    color: #ff3333;
+  }
+}
+
+.modal-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.product-modal h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+  color: #222;
+}
+
+.product-modal p {
+  color: #555;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.dimension-inputs {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.dimension-inputs label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  color: #333;
+  width: 45%;
+}
+
+.dimension-inputs input,
+.dimension-inputs select {
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.preco-calculado {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #222;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.adicionar-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+}
+
+
+
+
+// carinho
+.search-cart {
+  position: relative;
+
+  .icon {
+    font-size: 24px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: red;
+    color: white;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 50%;
+  }
+
+  .cart-dropdown {
+    position: absolute;
+    right: 0;
+    top: 30px;
+    background: white;
+    border: 1px solid #ddd;
+    padding: 15px;
+    width: 220px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+  }
+
+  .cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid #f1f1f1;
+
+    .cart-item-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cart-nome {
+      font-weight: bold;
+    }
+
+    .cart-qtd {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .cart-preco {
+      font-size: 14px;
+      color: #000;
+    }
+
+    .cart-remove {
+      background: none;
+      border: none;
+      color: red;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  }
+
+  .cart-total {
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+  }
+
+  .cart-finalizar {
+    margin-top: 10px;
+    width: 100%;
+    background-color: black;
+    color: white;
+    border: none;
+    padding: 8px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .cart-empty {
+    text-align: center;
+    color: #888;
+  }
+}
+
+
