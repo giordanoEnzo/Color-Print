@@ -1,5 +1,6 @@
 /* Variáveis globais */
-$primary-color: #007bff;
+// $primary-color: #007bff;
+$primary-color: #2F3264;
 $secondary-color: #0056b3;
 $text-color: #333;
 $light-gray: #f8f8f8;
@@ -41,9 +42,18 @@ body {
   line-height: 1.6;
 }
 
+
+.landingpage-wrapper {
+  background: url('/assets/images/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 20vh;
+}
+
 /* Barra de promoção */
 .promo-bar {
-  background: $dark-bg;
+  background: $primary-color;
   color: $white;
   padding: 0.5rem;
   text-align: center;
@@ -71,7 +81,7 @@ body {
     justify-content: center;
 
     &-gif {
-      height: 120px;
+      height: 150px;
       width: auto;
       transition: $transition;
       object-fit: contain;
@@ -324,7 +334,7 @@ body {
         width: calc(100% - 20px);
         margin: 0 auto 15px;
         padding: 10px;
-        background: #007bff;
+        background: $primary-color;
         color: white;
         border: none;
         border-radius: 5px;
@@ -335,7 +345,7 @@ body {
         transition: background 0.2s ease;
 
         &:hover {
-          background: #0069d9;
+          background: $primary-color;
         }
       }
     }
@@ -840,7 +850,7 @@ $transition: all 0.3s ease;
 }
 
 .adicionar-btn {
-  background-color: #007bff;
+  background-color: $primary-color;
   color: white;
   padding: 0.7rem 1rem;
   font-size: 0.95rem;
@@ -851,7 +861,7 @@ $transition: all 0.3s ease;
   transition: background 0.3s ease;
 
   &:hover {
-    background-color: #0056b3;
+    background-color: $primary-color;
   }
 }
 

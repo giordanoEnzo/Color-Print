@@ -52,9 +52,11 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-const accessToken = 'APP_USR-6836621365203261-060316-bee68e8296fad6316e04b9657ff4dc83-2456453806'
+// const accessToken = 'APP_USR-6836621365203261-060316-bee68e8296fad6316e04b9657ff4dc83-2456453806' caramelo dog burguer
 
-const { MercadoPagoConfig, Payment } = require('mercadopago');
+const accessToken = 'APP_USR-6075250848382634-062113-eadc8f1b789f83bf6d218a2c84d5a5c5-2191408844'
+
+const { MercadoPagoConfig, Payment, Preference } = require('mercadopago');
 
 const client = new MercadoPagoConfig({
     accessToken: accessToken,
@@ -63,46 +65,36 @@ const client = new MercadoPagoConfig({
     }
 });
 
+app.post('/api/checkout', async (req, res) => {
+  const items = req.body.items;
 
-app.post('/api/checkout-pro', async (req, res) => {
-  const { items } = req.body;
+  console.log('Itens recebidos no checkout:', items); // 👈 Verifique se está correto
 
   try {
-    const preference = {
-      items: items.map(item => ({
-        title: `${item.nome} - ${item.tamanho}`,
-        quantity: 1,
-        unit_price: Number(item.preco),
-        currency_id: 'BRL'
-      })),
-      back_urls: {
-        success: 'https://seusite.com/sucesso',
-        failure: 'https://seusite.com/falha',
-        pending: 'https://seusite.com/pendente'
-      },
-      auto_return: 'approved'
-    };
+    const preference = new Preference(client);
 
-    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(preference)
+    const result = await preference.create({
+      body: {
+        items: items.map(item => ({
+          title: `${item.nome} (${item.tamanho})`,
+          quantity: 1,
+          currency_id: "BRL",
+          unit_price: Number(item.preco)
+        })),
+        back_urls: {
+          success: 'https://www.google.com/webhp?hl=pt-BR&sa=X&ved=0ahUKEwjWicSi38X2AhUtq5UCHfVhAuAQPAgI',
+          failure: 'https://www.google.com/webhp?hl=pt-BR&sa=X&ved=0ahUKEwjWicSi38X2AhUtq5UCHfVhAuAQPAgI',
+          pending: 'https://www.google.com/webhp?hl=pt-BR&sa=X&ved=0ahUKEwjWicSi38X2AhUtq5UCHfVhAuAQPAgI'
+        },
+        auto_return: "approved"
+      }
     });
 
-    const data = await response.json();
+    return res.json({ init_point: result.init_point });
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Erro ao criar preferência');
-    }
-
-    res.json({ init_point: data.init_point });
-
-  } catch (err) {
-    console.error('Erro ao criar checkout:', err.message);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Erro ao criar preferência:', error); // 👈 aqui veremos o erro real
+    return res.status(500).json({ error: 'Erro ao criar preferência de pagamento.' });
   }
 });
 

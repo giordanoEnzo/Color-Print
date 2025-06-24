@@ -3,6 +3,10 @@
   <span>DESTAQUE DE PROMOÇÃO</span>
 </div>
 
+
+<div class="landingpage-wrapper">
+
+  <!-- todo conteúdo da landing -->
 <header class="header">
   <div class="logo">
     <img src="assets/images/logocolorprint.gif" alt="Color Print Logo" class="logo-gif">
@@ -13,7 +17,6 @@
     <a href="#">CONTATO</a>
   </nav>
   
-
 
   <div class="search-cart">
     <span class="icon" (click)="toggleCarrinho()">🛒</span>
@@ -36,7 +39,9 @@
       </div>
 
       <p class="cart-total">Total: {{ totalCarrinho | currency:'BRL' }}</p>
-      <button class="cart-finalizar">Finalizar</button>
+
+      <button class="cart-finalizar" (click)="finalizarCompra()">Finalizar Compra</button>
+
     </div>
   </div>
 
@@ -44,38 +49,61 @@
 
 </header>
 
-<section class="banner fade-in">
-  <img src="assets/images/banner.jpg" alt="Banner" class="banner-bg" />
-  <div class="highlight-card">
-    <img src="assets/images/card.jpg" alt="Produto em destaque" />
-    <h4>Signal DL</h4>
-    <p>R$ 129,00</p>
-    <button class="btn-pulse">ADICIONAR CARRINHO</button>
-  </div>
-</section>
 
-<div class="filtros-container">
-  <aside class="filtros-categorias">
-    <h4>Buscar por</h4>
-    <ul>
-      <li (click)="voltarParaHome()" [class.ativo]="!categoriaSelecionada">Todos os produtos</li>
-      <li *ngFor="let categoria of categoriasComProdutos" 
-          (click)="verTodosDaCategoria(categoria)" 
-          [class.ativo]="categoriaSelecionada?.id_categoria === categoria.id_categoria">
-        {{ categoria.nome }}
-      </li>
-    </ul>
-  </aside>
 
-  <!-- HOME: mostra 3 produtos por categoria -->
-  <section class="bestsellers fade-in" *ngIf="!categoriaSelecionada">
-    <div *ngFor="let categoria of categoriasComProdutos">
+
+  <section class="banner fade-in">
+    <img src="assets/images/banner.jpg" alt="Banner" class="banner-bg" />
+    <div class="highlight-card">
+      <img src="assets/images/card.jpg" alt="Produto em destaque" />
+      <h4>Signal DL</h4>
+      <p>R$ 129,00</p>
+      <button class="btn-pulse">ADICIONAR CARRINHO</button>
+    </div>
+  </section>
+
+  <div class="filtros-container">
+    <aside class="filtros-categorias">
+      <h4>Buscar por</h4>
+      <ul>
+        <li (click)="voltarParaHome()" [class.ativo]="!categoriaSelecionada">Todos os produtos</li>
+        <li *ngFor="let categoria of categoriasComProdutos" 
+            (click)="verTodosDaCategoria(categoria)" 
+            [class.ativo]="categoriaSelecionada?.id_categoria === categoria.id_categoria">
+          {{ categoria.nome }}
+        </li>
+      </ul>
+    </aside>
+
+    <!-- HOME: mostra 3 produtos por categoria -->
+    <section class="bestsellers fade-in" *ngIf="!categoriaSelecionada">
+      <div *ngFor="let categoria of categoriasComProdutos">
+        <div class="section-header">
+          <h3>{{ categoria.nome }}</h3>
+          <a (click)="verTodosDaCategoria(categoria)">VER TODOS →</a>
+        </div>
+        <div class="products-grid">
+          <div *ngFor="let produto of categoria.produtos.slice(0, 3)" class="product-card" (click)="abrirModal(produto)">
+            <div class="product-image-container">
+              <img [src]="produto.imagem" [alt]="produto.nome" />
+            </div>
+            <h4 class="product-name">{{ produto.nome }}</h4>
+            <p class="product-price">{{ produto.preco | currency:'BRL' }}</p>
+            <!-- <button class="add-to-cart-btn" (click)="adicionarAoCarrinho(produto)">ADICIONAR CARRINHO</button> -->
+            <button class="add-to-cart-btn" (click)="abrirModal(produto)">ADICIONAR CARRINHO</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORIA SELECIONADA: mostra todos os produtos dela -->
+    <section class="bestsellers fade-in" *ngIf="categoriaSelecionada">
       <div class="section-header">
-        <h3>{{ categoria.nome }}</h3>
-        <a (click)="verTodosDaCategoria(categoria)">VER TODOS →</a>
+        <h3>{{ categoriaSelecionada.nome }}</h3>
+        <a (click)="voltarParaHome()">← VOLTAR</a>
       </div>
       <div class="products-grid">
-        <div *ngFor="let produto of categoria.produtos.slice(0, 3)" class="product-card" (click)="abrirModal(produto)">
+        <div *ngFor="let produto of produtosDaCategoria" class="product-card">
           <div class="product-image-container">
             <img [src]="produto.imagem" [alt]="produto.nome" />
           </div>
@@ -85,143 +113,124 @@
           <button class="add-to-cart-btn" (click)="abrirModal(produto)">ADICIONAR CARRINHO</button>
         </div>
       </div>
+    </section>
+  </div>
+
+  <section class="highlight-offer fade-in">
+    <div class="offer-text">
+      <h2>CARTÃO DE VISITA 20% OFF</h2>
+      <p>Exclusive</p>
+      <button class="buy-button btn-pulse">comprar agora</button>
+    </div>
+    <div class="offer-image">
+      <img src="assets/images/produto4.jpg" alt="Cartão de visita em promoção" />
     </div>
   </section>
 
-  <!-- CATEGORIA SELECIONADA: mostra todos os produtos dela -->
-  <section class="bestsellers fade-in" *ngIf="categoriaSelecionada">
-    <div class="section-header">
-      <h3>{{ categoriaSelecionada.nome }}</h3>
-      <a (click)="voltarParaHome()">← VOLTAR</a>
-    </div>
-    <div class="products-grid">
-      <div *ngFor="let produto of produtosDaCategoria" class="product-card">
-        <div class="product-image-container">
-          <img [src]="produto.imagem" [alt]="produto.nome" />
-        </div>
-        <h4 class="product-name">{{ produto.nome }}</h4>
-        <p class="product-price">{{ produto.preco | currency:'BRL' }}</p>
-        <!-- <button class="add-to-cart-btn" (click)="adicionarAoCarrinho(produto)">ADICIONAR CARRINHO</button> -->
-        <button class="add-to-cart-btn" (click)="abrirModal(produto)">ADICIONAR CARRINHO</button>
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-column">
+        <h4>LOJA</h4>
+        <ul>
+          <li><a href="#">All products</a></li>
+          <li><a href="#">Best Sellers</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h4>POLITICAS</h4>
+        <ul>
+          <li><a href="#">Entregas</a></li>
+          <li><a href="#">Pedidos por demandas</a></li>
+          <li><a href="#">Orçamentos</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h4>CONTATO</h4>
+        <p>Rua Lourenço Dias, 640,<br/> Sala 6 , Araras - SP</p>
+      </div>
+      <div class="footer-column">
+        <h4>SOCIAL</h4>
+        <ul>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Facebook</a></li>
+          <li><a href="#">X</a></li>
+          <li><a href="#">Tik Tok</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h4>ORÇAMENTOS</h4>
+        <p>Faça seu orçamento online</p>
+        <form>
+          <input type="email" placeholder="Email Address *" required />
+          <button type="submit">Enviar</button>
+        </form>
       </div>
     </div>
-  </section>
-</div>
-
-<section class="highlight-offer fade-in">
-  <div class="offer-text">
-    <h2>CARTÃO DE VISITA 20% OFF</h2>
-    <p>Exclusive</p>
-    <button class="buy-button btn-pulse">comprar agora</button>
-  </div>
-  <div class="offer-image">
-    <img src="assets/images/produto4.jpg" alt="Cartão de visita em promoção" />
-  </div>
-</section>
-
-<footer class="site-footer">
-  <div class="footer-content">
-    <div class="footer-column">
-      <h4>LOJA</h4>
-      <ul>
-        <li><a href="#">All products</a></li>
-        <li><a href="#">Best Sellers</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <h2>COLOR PRINT.</h2>
+      <p>© 2035 by Hareware & Ramirez Stwart</p>
     </div>
-    <div class="footer-column">
-      <h4>POLITICAS</h4>
-      <ul>
-        <li><a href="#">Entregas</a></li>
-        <li><a href="#">Pedidos por demandas</a></li>
-        <li><a href="#">Orçamentos</a></li>
-      </ul>
-    </div>
-    <div class="footer-column">
-      <h4>CONTATO</h4>
-      <p>Rua Lourenço Dias, 640,<br/> Sala 6 , Araras - SP</p>
-    </div>
-    <div class="footer-column">
-      <h4>SOCIAL</h4>
-      <ul>
-        <li><a href="#">Instagram</a></li>
-        <li><a href="#">Facebook</a></li>
-        <li><a href="#">X</a></li>
-        <li><a href="#">Tik Tok</a></li>
-      </ul>
-    </div>
-    <div class="footer-column">
-      <h4>ORÇAMENTOS</h4>
-      <p>Faça seu orçamento online</p>
-      <form>
-        <input type="email" placeholder="Email Address *" required />
-        <button type="submit">Enviar</button>
-      </form>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <h2>COLOR PRINT.</h2>
-    <p>© 2035 by Hareware & Ramirez Stwart</p>
-  </div>
-</footer>
+  </footer>
 
 
 
-<!-- ...[demais seções como header, filtros e footer permanecem iguais]... -->
+  <!-- ...[demais seções como header, filtros e footer permanecem iguais]... -->
 
-<!-- Modal DETALHE DOS PRODUTOS -->
-<div class="modal-backdrop" (click)="fecharModal()" *ngIf="produtoSelecionado"></div>
+  <!-- Modal DETALHE DOS PRODUTOS -->
+  <div class="modal-backdrop" (click)="fecharModal()" *ngIf="produtoSelecionado"></div>
 
-<div class="product-modal" *ngIf="produtoSelecionado">
-  <button class="close-btn" (click)="fecharModal()">✖</button>
+  <div class="product-modal" *ngIf="produtoSelecionado">
+    <button class="close-btn" (click)="fecharModal()">✖</button>
 
-  <div class="modal-content">
-    <img [src]="produtoSelecionado.imagem" [alt]="produtoSelecionado.nome" class="modal-img" />
+    <div class="modal-content">
+      <img [src]="produtoSelecionado.imagem" [alt]="produtoSelecionado.nome" class="modal-img" />
 
-    <div class="modal-info">
-      <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
-      <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
+      <div class="modal-info">
+        <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
+        <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
 
-      <div class="dimension-inputs">
-        <div class="input-group">
-          <label>Tamanho:</label>
-          <select [(ngModel)]="tamanhoSelecionado" (change)="calcularPreco()">
-            <option *ngFor="let tamanho of tamanhos" [value]="tamanho">{{ tamanho }}</option>
-          </select>
+        <div class="dimension-inputs">
+          <div class="input-group">
+            <label>Tamanho:</label>
+            <select [(ngModel)]="tamanhoSelecionado" (change)="calcularPreco()">
+              <option *ngFor="let tamanho of tamanhos" [value]="tamanho">{{ tamanho }}</option>
+            </select>
+          </div>
+
+          <div class="input-group" *ngIf="tamanhoSelecionado === 'Personalizado'">
+            <label>Altura (m):</label>
+            <input type="number" [(ngModel)]="altura" (input)="calcularPreco()" step="0.01" min="0.1" />
+          </div>
+
+          <div class="input-group" *ngIf="tamanhoSelecionado === 'Personalizado'">
+            <label>Largura (m):</label>
+            <input type="number" [(ngModel)]="largura" (input)="calcularPreco()" step="0.01" min="0.1" />
+          </div>
+
+          <div class="input-group">
+            <label>Quantidade:</label>
+            <select [(ngModel)]="quantidadeSelecionada" (change)="calcularPreco()">
+              <option *ngFor="let qtd of quantidades" [value]="qtd">{{ qtd }} unidades</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+
+          <div class="input-group" *ngIf="quantidadeSelecionada === 'Outro'">
+            <label>Informe a quantidade desejada:</label>
+            <input type="number" [(ngModel)]="quantidadePersonalizada" (input)="calcularPreco()" min="1" />
+          </div>
         </div>
 
-        <div class="input-group" *ngIf="tamanhoSelecionado === 'Personalizado'">
-          <label>Altura (m):</label>
-          <input type="number" [(ngModel)]="altura" (input)="calcularPreco()" step="0.01" min="0.1" />
-        </div>
+        <p class="preco-calculado">💰 {{ precoCalculado | currency:'BRL' }}</p>
 
-        <div class="input-group" *ngIf="tamanhoSelecionado === 'Personalizado'">
-          <label>Largura (m):</label>
-          <input type="number" [(ngModel)]="largura" (input)="calcularPreco()" step="0.01" min="0.1" />
-        </div>
-
-        <div class="input-group">
-          <label>Quantidade:</label>
-          <select [(ngModel)]="quantidadeSelecionada" (change)="calcularPreco()">
-            <option *ngFor="let qtd of quantidades" [value]="qtd">{{ qtd }} unidades</option>
-            <option value="Outro">Outro</option>
-          </select>
-        </div>
-
-        <div class="input-group" *ngIf="quantidadeSelecionada === 'Outro'">
-          <label>Informe a quantidade desejada:</label>
-          <input type="number" [(ngModel)]="quantidadePersonalizada" (input)="calcularPreco()" min="1" />
-        </div>
+        <button class="adicionar-btn" (click)="adicionarSelecionadoAoCarrinho()">
+          Adicionar ao carrinho
+        </button>
       </div>
-
-      <p class="preco-calculado">💰 {{ precoCalculado | currency:'BRL' }}</p>
-
-      <button class="adicionar-btn" (click)="adicionarSelecionadoAoCarrinho()">
-        Adicionar ao carrinho
-      </button>
     </div>
   </div>
+
+
+
+
 </div>
-
-
-
-

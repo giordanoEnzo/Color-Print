@@ -45,4 +45,9 @@ export class PixService {
     return this.http.get(`${this.apiUrl}/pix/status/${id}`);
   }
 
+  criarCheckoutPro(items: any[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/checkout`, { items });
+  }
+  
+
 }

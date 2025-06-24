@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { ProdutoService } from 'src/app/services/produto.service';
+import { PixService } from 'src/app/services/pix.service';
 
 interface Produto {
   id_produto: number;
@@ -52,7 +53,8 @@ export class LandingpageComponent implements OnInit {
 
   constructor(
     private toastr: ToastrService,
-    private produtoService: ProdutoService
+    private produtoService: ProdutoService,
+    private pixservice: PixService,
   ) {}
 
   ngOnInit(): void {
@@ -159,4 +161,34 @@ export class LandingpageComponent implements OnInit {
   getTotalItensCarrinho(): number {
     return this.carrinho.reduce((total, item) => total + item.quantidade, 0);
   }
+
+  
+  finalizarCompra() {
+    
+    if (this.carrinho.length === 0) {
+      this.toastr.warning('Carrinho vazio!');
+      return;
+    }
+
+    console.log('Enviando itens para o checkout:', this.carrinho);
+
+    this.pixservice.criarCheckoutPro(this.carrinho).subscribe({
+      next: (res) => {
+        if (res.init_point) {
+          window.location.href = res.init_point;
+        } else {
+          this.toastr.error('Erro ao redirecionar para o Mercado Pago');
+        }
+      },
+      error: (err) => {
+        console.error('Erro ao finalizar compra:', err);
+        this.toastr.error('Falha ao criar preferência');
+      }
+    });
+  }
+
+
+
+
+
 }
