@@ -114,7 +114,9 @@ export class LandingpageComponent implements OnInit {
   }
 
   calcularPreco(): void {
+
     const qtd = this.quantidadeSelecionada === 'Outro' ? this.quantidadePersonalizada : this.quantidadeSelecionada;
+    
     const precosTabela: any = {
       '2.5x2.5': { 100: 35, 500: 55, 1000: 90 },
       '3x3':     { 100: 40, 500: 60, 1000: 100 },

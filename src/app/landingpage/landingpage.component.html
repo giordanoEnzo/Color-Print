@@ -49,15 +49,12 @@
 
 </header>
 
-
-
-
   <section class="banner fade-in">
     <img src="assets/images/banner.jpg" alt="Banner" class="banner-bg" />
     <div class="highlight-card">
-      <img src="assets/images/card.jpg" alt="Produto em destaque" />
-      <h4>Signal DL</h4>
-      <p>R$ 129,00</p>
+      <img src="assets/images/produtos/SC001.jpg" alt="Produto em destaque"  />
+      <h4>Placas adesivas proibido estacionar 2x2 100 Unidades</h4>
+      <p>R$ 35,00</p>
       <button class="btn-pulse">ADICIONAR CARRINHO</button>
     </div>
   </section>
@@ -89,7 +86,7 @@
             </div>
             <h4 class="product-name">{{ produto.nome }}</h4>
             <p class="product-price">{{ produto.preco | currency:'BRL' }}</p>
-            <!-- <button class="add-to-cart-btn" (click)="adicionarAoCarrinho(produto)">ADICIONAR CARRINHO</button> -->
+
             <button class="add-to-cart-btn" (click)="abrirModal(produto)">ADICIONAR CARRINHO</button>
           </div>
         </div>
@@ -103,7 +100,7 @@
         <a (click)="voltarParaHome()">← VOLTAR</a>
       </div>
       <div class="products-grid">
-        <div *ngFor="let produto of produtosDaCategoria" class="product-card">
+        <div *ngFor="let produto of produtosDaCategoria" class="product-card" (click)="abrirModal(produto)">
           <div class="product-image-container">
             <img [src]="produto.imagem" [alt]="produto.nome" />
           </div>
@@ -116,7 +113,7 @@
     </section>
   </div>
 
-  <section class="highlight-offer fade-in">
+  <!-- <section class="highlight-offer fade-in">
     <div class="offer-text">
       <h2>CARTÃO DE VISITA 20% OFF</h2>
       <p>Exclusive</p>
@@ -125,7 +122,7 @@
     <div class="offer-image">
       <img src="assets/images/produto4.jpg" alt="Cartão de visita em promoção" />
     </div>
-  </section>
+  </section> -->
 
   <footer class="site-footer">
     <div class="footer-content">
@@ -221,7 +218,7 @@
           </div>
         </div>
 
-        <p class="preco-calculado">💰 {{ precoCalculado | currency:'BRL' }}</p>
+        <p class="preco-calculado"> {{ precoCalculado | currency:'BRL' }}</p>
 
         <button class="adicionar-btn" (click)="adicionarSelecionadoAoCarrinho()">
           Adicionar ao carrinho
@@ -234,3 +231,27 @@
 
 
 </div>
+
+
+<!-- 
+
+  💠 Opção 1: Manter como está (com variações internas)
+  Você continua com 1 produto (por tipo geral).
+
+  O usuário escolhe tamanho/quantidade no modal.
+
+  Ideal para catálogo compacto.
+
+  💠 Opção 2: Separar por tamanho fixo (cada tamanho é uma categoria ou um produto)
+  Crie categorias ou produtos separados para 2x2, 3x3, 4x4...
+
+  O cliente entra na categoria 2x2 e vê só produtos 2x2 com variações de quantidade.
+
+  Vantagem: mais organizado visualmente.
+
+  💠 Opção 3: Categoria especial “Personalizado”
+  Apenas nesta categoria o cliente pode inserir manualmente altura, largura e quantidade.
+
+  O sistema calcula largura * altura * preço_por_m² * quantidade. 
+
+-->
