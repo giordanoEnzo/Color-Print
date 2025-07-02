@@ -17,6 +17,7 @@ interface Categoria {
   produtos: Produto[];
 }
 
+
 interface CarrinhoItem extends Produto {
   quantidade: number; // UNIDADE no carrinho
   tamanho: string;
@@ -30,10 +31,14 @@ interface CarrinhoItem extends Produto {
   templateUrl: './landingpage.component.html',
   styleUrls: ['./landingpage.component.scss']
 })
+
 export class LandingpageComponent implements OnInit {
   categoriasComProdutos: Categoria[] = [];
   categoriaSelecionada: Categoria | null = null;
   produtosDaCategoria: Produto[] = [];
+
+  textoDestaque: string = 'DESTAQUE DE PROMOÇÃO'; // Isso vem do backend futuramente
+  repeteTexto = Array(20); // Repete 20 vezes para preencher a tela
 
   altura = 1;
   largura = 1;
@@ -50,6 +55,16 @@ export class LandingpageComponent implements OnInit {
   tamanhoSelecionado = '2.5x2.5';
   quantidadeSelecionada: number | 'Outro' = 100;
   quantidadePersonalizada = 1;
+
+
+  produtoDestaque: Produto = {
+    id_produto: 999, // ✅ pode ser um número fictício
+    nome: 'Placas adesivas proibido estacionar 2x2 100 Unidades',
+    preco: 35.0,
+    imagem: 'assets/images/produtos/SC001.jpg',
+    descricao: 'Placa adesiva em vinil com tamanho 2x2 e pacote de 100 unidades.'
+  };
+
 
   constructor(
     private toastr: ToastrService,
@@ -114,27 +129,62 @@ export class LandingpageComponent implements OnInit {
   }
 
   calcularPreco(): void {
+  const tabelaPrecos: Record<string, Record<number, number>> = {
+    '2.5x2.5': { 100: 35, 500: 55, 1000: 90 },
+    '3x3':     { 100: 40, 500: 60, 1000: 100 },
+    '4x4':     { 100: 50, 500: 70, 1000: 120 },
+    '5x5':     { 100: 60, 500: 90, 1000: 150 }
+  };
 
-    const qtd = this.quantidadeSelecionada === 'Outro' ? this.quantidadePersonalizada : this.quantidadeSelecionada;
-    
-    const precosTabela: any = {
-      '2.5x2.5': { 100: 35, 500: 55, 1000: 90 },
-      '3x3':     { 100: 40, 500: 60, 1000: 100 },
-      '4x4':     { 100: 50, 500: 80, 1000: 120 },
-      '5x5':     { 100: 65, 500: 95, 1000: 170 },
-      'Personalizado': { 100: 90, 500: 70, 1000: 60 }
-    };
+  if (!this.tamanhoSelecionado) {
+    this.precoCalculado = 0;
+    return;
+  }
 
-    if (this.tamanhoSelecionado === 'Personalizado') {
-      const area = this.altura * this.largura;
-      const faixa = this.getFaixaQuantidade(qtd);
-      const precoMetro = precosTabela['Personalizado'][faixa];
-      this.precoCalculado = area * precoMetro * qtd;
-    } else {
-      const faixa = this.getFaixaQuantidade(qtd);
-      this.precoCalculado = precosTabela[this.tamanhoSelecionado][faixa] || 0;
+  if (this.tamanhoSelecionado === 'Personalizado') {
+    // cálculo por metro quadrado personalizado
+    const area = (this.altura || 0) * (this.largura || 0);
+    const precoMetroQuadrado = 80;
+    const qtd = this.quantidadeSelecionada === 'Outro' ? +this.quantidadePersonalizada : +this.quantidadeSelecionada;
+    this.precoCalculado = Number((area * precoMetroQuadrado * qtd).toFixed(2));
+    return;
+  }
+
+  const tabela = tabelaPrecos[this.tamanhoSelecionado];
+  if (!tabela) {
+    this.precoCalculado = 0;
+    return;
+  }
+
+  const quantidade = this.quantidadeSelecionada === 'Outro'
+    ? +this.quantidadePersonalizada
+    : +this.quantidadeSelecionada;
+
+  if (tabela[quantidade]) {
+    this.precoCalculado = tabela[quantidade];
+    return;
+  }
+
+  // Interpolação para quantidades fora do range exato
+  const quantidades = Object.keys(tabela).map(Number).sort((a, b) => a - b);
+  let menor = quantidades[0];
+  let maior = quantidades[quantidades.length - 1];
+
+  for (let i = 0; i < quantidades.length - 1; i++) {
+    if (quantidade > quantidades[i] && quantidade < quantidades[i + 1]) {
+      menor = quantidades[i];
+      maior = quantidades[i + 1];
+      break;
     }
   }
+
+  const precoMenor = tabela[menor];
+  const precoMaior = tabela[maior];
+
+  const precoInterpolado = precoMenor + ((quantidade - menor) * (precoMaior - precoMenor)) / (maior - menor);
+  this.precoCalculado = Number(precoInterpolado.toFixed(2));
+}
+
 
   getFaixaQuantidade(qtd: number): 100 | 500 | 1000 {
     if (qtd <= 100) return 100;

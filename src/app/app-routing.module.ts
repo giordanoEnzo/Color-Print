@@ -65,7 +65,12 @@ const routes: Routes = [
       {
         path: 'home',
         loadChildren: () => import('./landingpage/landingpage.module').then(m => m.LandingpageModule)
-      }
+      },
+      {
+        path: 'sobre',
+        loadComponent: () => import('./landingpage/sobre/sobre.component').then(m => m.SobreComponent)
+      },
+      
     ]
   }
 ];

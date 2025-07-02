@@ -14,8 +14,7 @@ const { exec } = require('child_process');
 const app = express();
 const port = process.env.PORT || 2000;
 
-
-const allowedOrigins = ['http://localhost:4200', 'http://192.168.99.105:5000/api'];
+const allowedOrigins = ['http://localhost:4200', 'http://192.168.99.100:5000/api'];
 
 const corsOptions = {
   origin: function(origin, callback) {

@@ -51,15 +51,42 @@ body {
   min-height: 20vh;
 }
 
-/* Barra de promoção */
 .promo-bar {
-  background: $primary-color;
-  color: $white;
-  padding: 0.5rem;
-  text-align: center;
+  overflow: hidden;
+  background-color:$primary-color;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  color: white;
   font-weight: bold;
-  font-size: 0.9rem;
+
+  .promo-track {
+    display: flex;
+    width: fit-content;
+    animation: scrollText 50s linear infinite;
+  }
+
+  .promo-content {
+    display: flex;
+    white-space: nowrap;
+
+    span {
+      margin-right: 2rem;
+      font-size: 1rem;
+    }
+  }
 }
+
+@keyframes scrollText {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 
 /* Header */
 .header {

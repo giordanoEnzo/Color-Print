@@ -1,8 +1,14 @@
 <!-- HTML COMPLETO DA LANDING PAGE COM FILTRO E CATEGORIAS -->
 <div class="promo-bar">
-  <span>DESTAQUE DE PROMOÇÃO</span>
+  <div class="promo-track">
+    <div class="promo-content">
+      <span *ngFor="let i of repeteTexto">* {{ textoDestaque }} *</span>
+    </div>
+    <div class="promo-content">
+      <span *ngFor="let i of repeteTexto">* {{ textoDestaque }} *</span>
+    </div>
+  </div>
 </div>
-
 
 <div class="landingpage-wrapper">
 
@@ -13,7 +19,7 @@
   </div>
   <nav class="nav">
     <a href="#">HOME</a>
-    <a href="#">SOBRE</a>
+    <a routerLink="/home/sobre">SOBRE</a>
     <a href="#">CONTATO</a>
   </nav>
   
@@ -55,7 +61,7 @@
       <img src="assets/images/produtos/SC001.jpg" alt="Produto em destaque"  />
       <h4>Placas adesivas proibido estacionar 2x2 100 Unidades</h4>
       <p>R$ 35,00</p>
-      <button class="btn-pulse">ADICIONAR CARRINHO</button>
+      <button class="btn-pulse" (click)="abrirModal(produtoDestaque)">ADICIONAR CARRINHO</button>
     </div>
   </section>
 
@@ -169,8 +175,6 @@
     </div>
   </footer>
 
-
-
   <!-- ...[demais seções como header, filtros e footer permanecem iguais]... -->
 
   <!-- Modal DETALHE DOS PRODUTOS -->
@@ -226,8 +230,6 @@
       </div>
     </div>
   </div>
-
-
 
 
 </div>
