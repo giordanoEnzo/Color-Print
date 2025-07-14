@@ -129,6 +129,13 @@ export class LandingpageComponent implements OnInit {
   }
 
   calcularPreco(): void {
+
+  //add  a partir de na precificação.
+
+  //Preços de etiquetas sempre baseado no menor preço. 
+  
+  //Placas vão ser outra escala 
+
   const tabelaPrecos: Record<string, Record<number, number>> = {
     '2.5x2.5': { 100: 35, 500: 55, 1000: 90 },
     '3x3':     { 100: 40, 500: 60, 1000: 100 },
