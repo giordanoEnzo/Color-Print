@@ -13,14 +13,14 @@ import { SobreComponent } from './sobre/sobre.component';
   declarations: [
     LandingpageComponent,
     SobreComponent,
+    HeaderComponent,
+    FooterComponent,
   ],
 
   imports: [
     CommonModule,
     FormsModule,
     LandingpageRoutingModule,
-    HeaderComponent,
-    FooterComponent,
     NgxMaskDirective
   ],
   providers: [provideNgxMask()],

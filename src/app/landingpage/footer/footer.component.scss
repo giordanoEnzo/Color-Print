@@ -1,0 +1,148 @@
+
+
+/* Variáveis globais */
+// $primary-color: #007bff;
+$primary-color: #2F3264;
+$secondary-color: #0056b3;
+$text-color: #333;
+$light-gray: #f8f8f8;
+$dark-bg: #1a1a1a;
+$white: #fff;
+$border-radius: 10px;
+$transition: all 0.3s ease;
+
+/* Mixins e placeholders */
+%btn-base {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: $transition;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+%card-base {
+  background: $white;
+  border-radius: $border-radius;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: $transition;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  }
+}
+
+/* Estilos globais */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: $text-color;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Footer */
+.site-footer {
+  background-color: $dark-bg;
+  color: $white;
+  padding: 3rem 5% 2rem;
+  margin-top: 3rem;
+
+  .footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .footer-column {
+      flex: 1;
+      min-width: 180px;
+
+      h4 {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        color: $white;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        
+        li {
+          margin-bottom: 0.5rem;
+          
+          a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: $transition;
+
+            &:hover {
+              color: $white;
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+
+      p {
+        font-size: 0.9rem;
+        color: #ccc;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+
+        input[type="email"] {
+          padding: 0.5rem;
+          border-radius: 4px;
+          border: none;
+          margin-bottom: 0.5rem;
+        }
+
+        label {
+          font-size: 0.8rem;
+          margin-bottom: 0.5rem;
+          color: #ccc;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        button {
+          @extend %btn-base;
+          background-color: $primary-color;
+          color: $white;
+
+          &:hover {
+            background-color: $secondary-color;
+          }
+        }
+      }
+    }
+  }
+
+  .footer-bottom {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #333;
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: $white;
+    }
+
+    p {
+      font-size: 0.8rem;
+      color: #999;
+    }
+  }
+}

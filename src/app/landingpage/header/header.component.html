@@ -1,1 +1,40 @@
-<p>header works!</p>
+<header class="header">
+  <div class="logo">
+    <img src="assets/images/logocolorprint.gif" alt="Color Print Logo" class="logo-gif" />
+  </div>
+
+  <nav class="nav">
+    <a routerLink="/">HOME</a>
+    <a routerLink="/home/sobre">SOBRE</a>
+    <a href="#">CONTATO</a>
+  </nav>
+
+  <div class="search-cart">
+    <span class="icon" (click)="toggleCarrinho()">🛒</span>
+
+    <span class="cart-badge" *ngIf="(carrinho$ | async)?.length > 0">
+      {{ getTotalItensCarrinho() }}
+    </span>
+
+    <div class="cart-dropdown" *ngIf="carrinhoAberto">
+      <h4>Seu Carrinho</h4>
+
+      <div *ngIf="(carrinho$ | async)?.length === 0">
+        <p class="cart-empty">Vazio 😢</p>
+      </div>
+
+      <div *ngFor="let item of (carrinho$ | async)" class="cart-item">
+        <div class="cart-item-info">
+          <span class="cart-nome">{{ item.nome }}</span>
+          <span class="cart-qtd">({{ item.quantidade }})</span>
+          <span class="cart-preco">{{ item.preco | currency:'BRL' }}</span>
+        </div>
+        <button class="cart-remove" (click)="removerDoCarrinho(item)">x</button>
+      </div>
+
+      <p class="cart-total">Total: {{ totalCarrinho | currency:'BRL' }}</p>
+
+      <button class="cart-finalizar" (click)="finalizarCompra()">Finalizar Compra</button>
+    </div>
+  </div>
+</header>
