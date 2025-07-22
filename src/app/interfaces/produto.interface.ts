@@ -1,10 +1,13 @@
 export interface Produto {
-  id_produto: number;          // ID do produto
-  nome: string;                // Nome do produto
-  descricao: string;           // Descrição do produto
-  preco: number;               // Preço do produto
-  quantidade_estoque: number;  // Quantidade em estoque
-  imagem: File | null;         // Adiciona a propriedade imagem
-  imagemUrl?: string;          // Adicionando a propriedade imagemUrl
-  categoria?: string;
+  id_produto: number;
+  nome: string;
+  descricao?: string;
+  preco: number;
+  quantidade_estoque?: number; // Mantido para compatibilidade
+  imagem?: File | null;
+  imagemUrl?: string;
+  categoria?: string; // String para exibição
+  id_categoria?: number; // Adicionado para referência ao ID
+  destaque?: boolean; // Adicionado
+  estoque?: number; // Sinônimo de quantidade_estoque
 }

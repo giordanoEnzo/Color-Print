@@ -272,6 +272,48 @@ app.get('/api/produtos', async (req, res) => {
 });
 
 
+app.post('/api/produtos', upload.single('imagem'), async (req, res) => {
+  try {
+    // Extrai os dados do FormData
+    const { nome, preco, destaque, estoque, id_categoria } = req.body;
+    const imagem = req.file?.filename || '';
+
+    // Validação mínima (imagem é obrigatória na sua tabela)
+    if (!imagem) {
+      return res.status(400).json({ erro: 'A imagem é obrigatória' });
+    }
+
+    // Insere no banco exatamente como sua estrutura
+    const [result] = await db.promise().query(
+      `INSERT INTO produtos 
+       (nome, preco, imagem, destaque, estoque, id_categoria) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        nome,
+        parseFloat(preco), 
+        imagem,
+        destaque === '1' ? 1 : 0, // Converte para TINYINT
+        parseInt(estoque) || 0,
+        id_categoria || null
+      ]
+    );
+
+    // Retorna resposta simplificada
+    res.json({ 
+      success: true,
+      id: result.insertId 
+    });
+
+  } catch (error) {
+    console.error('Erro no backend:', error);
+    res.status(500).json({ 
+      success: false,
+      erro: 'Erro interno' 
+    });
+  }
+});
+
+
 
 
 const ip = '0.0.0.0'; // Permite conexões externas

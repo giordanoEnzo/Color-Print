@@ -93,30 +93,47 @@ export class TblProdutosComponent implements OnInit {
   }
 
   adicionarProduto(): void {
-    const formData: FormData = new FormData();
+    const formData = new FormData();
+    
+    // Campos obrigatórios
     formData.append('nome', this.novoProduto.nome);
-    formData.append('descricao', this.novoProduto.descricao);
     formData.append('preco', this.novoProduto.preco.toString());
-    formData.append('quantidade_estoque', this.novoProduto.quantidade_estoque.toString());
-    formData.append('categoria', this.novoProduto.categoria || '');
-
+    
+    // Campos condicionais (alinhados com sua interface)
+    if (this.novoProduto.descricao) {
+      formData.append('descricao', this.novoProduto.descricao);
+    }
+    
     if (this.novoProduto.imagem) {
-      formData.append('imagem', this.novoProduto.imagem, this.novoProduto.imagem.name);
+      formData.append('imagem', this.novoProduto.imagem);
     }
 
-    this.ProdutoService.addProduto(formData).subscribe(
-      (response) => {
-        response.imagemUrl = `http://localhost:5000/uploads/${response.imagem}`;
-        this.produtos.push(response);
-        this.toastr.success('Produto adicionado com sucesso!', 'Sucesso');
+    // Novos campos (com fallback seguro)
+    formData.append(
+      'destaque', 
+      (this.novoProduto as any).destaque ? '1' : '0' // Type assertion temporária
+    );
+    
+    formData.append(
+      'estoque', 
+      ((this.novoProduto as any).estoque || 0).toString()
+    );
+    
+    formData.append(
+      'id_categoria', 
+      (this.novoProduto.id_categoria || '').toString()
+    );
+
+    this.ProdutoService.addProduto(formData).subscribe({
+      next: (res) => {
+        this.toastr.success('Produto cadastrado!', 'Sucesso');
+        this.carregarProdutos();
         this.toggleFormulario();
       },
-      (error) => {
-        this.erro = 'Erro ao adicionar produto';
-        console.error('Erro ao adicionar produto:', error);
-        this.toastr.error('Erro ao adicionar produto', 'Erro');
+      error: (err) => {
+        this.toastr.error(err.error?.erro || 'Erro ao cadastrar', 'Falha');
       }
-    );
+    });
   }
 
   deletarProduto(id: number): void {
