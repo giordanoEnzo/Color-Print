@@ -14,14 +14,29 @@
 <app-header (checkoutClicked)="finalizarCompra()"></app-header>
 
   <section class="banner fade-in">
-    <img src="assets/images/banner.jpg" alt="Banner" class="banner-bg" />
-    <div class="highlight-card">
-      <img src="assets/images/produtos/SC001.jpg" alt="Produto em destaque"  />
-      <h4>Placas adesivas proibido estacionar 2x2 100 Unidades</h4>
-      <p>R$ 35,00</p>
-      <button class="btn-pulse" (click)="abrirModal(produtoDestaque)">ADICIONAR CARRINHO</button>
+    <div class="carousel">
+      <div 
+        class="carousel-slide" 
+        *ngFor="let slide of slides; let i = index" 
+        [ngClass]="{ 'active': i === slideIndex }"
+      >
+        <img [src]="slide.imagem" [alt]="slide.alt" class="banner-bg" />
+      </div>
+
+      <!-- Highlight card permanece fixo -->
+      <div class="highlight-card">
+        <img src="assets/images/produtos/SC001.jpg" alt="Produto em destaque" />
+        <h4>Placas adesivas proibido estacionar 2x2 100 Unidades</h4>
+        <p>R$ 35,00</p>
+        <button class="btn-pulse" (click)="abrirModal(produtoDestaque)">ADICIONAR CARRINHO</button>
+      </div>
+
+      <!-- Botões de navegação -->
+      <button class="carousel-btn prev" (click)="voltarSlide()">‹</button>
+      <button class="carousel-btn next" (click)="avancarSlide()">›</button>
     </div>
   </section>
+
 
   <div class="filtros-container">
     <aside class="filtros-categorias">
@@ -49,7 +64,7 @@
               <img [src]="produto.imagem" [alt]="produto.nome" />
             </div>
             <h4 class="product-name">{{ produto.nome }}</h4>
-            <p class="product-price">{{ produto.preco | currency:'BRL' }}</p>
+            <p class="product-price">A partir de : {{ produto.preco | currency:'BRL' }}</p>
 
             <button class="add-to-cart-btn" (click)="abrirModal(produto)">ADICIONAR CARRINHO</button>
           </div>
@@ -96,81 +111,61 @@
   <div class="modal-backdrop" (click)="fecharModal()" *ngIf="produtoSelecionado"></div>
 
   <div class="product-modal" *ngIf="produtoSelecionado">
-    <button class="close-btn" (click)="fecharModal()">✖</button>
+  <button class="close-btn" (click)="fecharModal()">✖</button>
 
-    <div class="modal-content">
+  <div class="modal-content">
+    <!-- LADO ESQUERDO: IMAGEM -->
+    <div class="modal-left">
       <img [src]="produtoSelecionado.imagem" [alt]="produtoSelecionado.nome" class="modal-img" />
+    </div>
 
-      <div class="modal-info">
-        <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
-        <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
+    <!-- LADO DIREITO: INFO -->
+    <div class="modal-right">
+      <br /><br />
+      <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
+      <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
 
-        <div class="dimension-inputs">
-          <div class="input-group">
-            <label>Tamanho:</label>
-            <select [(ngModel)]="tamanhoSelecionado" (change)="calcularPreco()">
-              <option *ngFor="let tamanho of tamanhos" [value]="tamanho">{{ tamanho }}</option>
-            </select>
-          </div>
+       <!-- Tamanhos como botão --> 
+       <label class="input-label">Tamanho:</label>
+       <div class="input-group">
+        <div class="button-group">
+          <button
+            *ngFor="let tamanho of tamanhos"
+            (click)="selecionarTamanho(tamanho)"
+            [ngClass]="{ 'tamanho-btn-active': tamanhoSelecionado === tamanho }"
+            class="tamanho-btn"
+          >
+            <strong>{{ tamanho.label }}</strong><br />
+            <small>{{ tamanho.preco | currency: 'BRL' }}</small>
+          </button>
+        </div>
+      </div>
 
-          <div class="input-group" *ngIf="tamanhoSelecionado === 'Personalizado'">
-            <label>Altura (m):</label>
-            <input type="number" [(ngModel)]="altura" (input)="calcularPreco()" step="0.01" min="0.1" />
-          </div>
-
-          <div class="input-group" *ngIf="tamanhoSelecionado === 'Personalizado'">
-            <label>Largura (m):</label>
-            <input type="number" [(ngModel)]="largura" (input)="calcularPreco()" step="0.01" min="0.1" />
-          </div>
-
-          <div class="input-group">
-            <label>Quantidade:</label>
-            <select [(ngModel)]="quantidadeSelecionada" (change)="calcularPreco()">
-              <option *ngFor="let qtd of quantidades" [value]="qtd">{{ qtd }} unidades</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
-
-          <div class="input-group" *ngIf="quantidadeSelecionada === 'Outro'">
-            <label>Informe a quantidade desejada:</label>
-            <input type="number" [(ngModel)]="quantidadePersonalizada" (input)="calcularPreco()" min="1" />
+        <!-- Contador de quantidade -->
+        <div class="quantidade-control">
+          <label>Quantidade:</label>
+          <div class="contador">
+            <button (click)="decrementarQuantidade()" class="btn-menor">−</button>
+            <span class="quantidade">{{ quantidade }}</span>
+            <button (click)="incrementarQuantidade()" class="btn-maior">+</button>
           </div>
         </div>
 
-        <p class="preco-calculado"> {{ precoCalculado | currency:'BRL' }}</p>
+        <!-- Preço calculado -->
+        <p class="preco-calculado">
+          TOTAL: {{ precoCalculado | currency:'BRL' }}
+        </p>
 
         <button class="adicionar-btn" (click)="adicionarSelecionadoAoCarrinho()">
           Adicionar ao carrinho
         </button>
-      </div>
+  
     </div>
   </div>
-
-  <app-footer></app-footer>
-
 </div>
 
 
 
-<!-- 
+</div>
 
-  💠 Opção 1: Manter como está (com variações internas)
-  Você continua com 1 produto (por tipo geral).
-
-  O usuário escolhe tamanho/quantidade no modal.
-
-  Ideal para catálogo compacto.
-
-  💠 Opção 2: Separar por tamanho fixo (cada tamanho é uma categoria ou um produto)
-  Crie categorias ou produtos separados para 2x2, 3x3, 4x4...
-
-  O cliente entra na categoria 2x2 e vê só produtos 2x2 com variações de quantidade.
-
-  Vantagem: mais organizado visualmente.
-
-  💠 Opção 3: Categoria especial “Personalizado”
-  Apenas nesta categoria o cliente pode inserir manualmente altura, largura e quantidade.
-
-  O sistema calcula largura * altura * preço_por_m² * quantidade. 
-
--->
+<app-footer></app-footer>

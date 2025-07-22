@@ -1,81 +1,238 @@
-/* Estilo do card de produto */
+/* =========================
+   Estilos do Card de Produto
+   ========================= */
+
 .product-card {
-  border: 1px solid #ddd; /* Borda fina */
-  border-radius: 10px; /* Bordas arredondadas */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Efeito de transição */
-  overflow: hidden; /* Impede que a imagem ultrapasse os limites */
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 260px; // ← card mais fino
+  margin: 0 auto;
 }
 
-/* Efeito de hover para aumentar o card e adicionar sombra */
 .product-card:hover {
-  transform: translateY(-5px); /* Levanta o card */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Aumenta a sombra */
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* Imagem com bordas arredondadas */
 .product-image {
-  border-radius: 10px; /* Arredonda as bordas da imagem */
-  width: 100%; /* A imagem ocupa toda a largura do card */
-  height: 400px; /* Altura fixa para a imagem */
-  object-fit: cover; /* Garante que a imagem preenche sem distorcer */
+  height: 200px;
+  width: 100%;
+  object-fit: contain;
+  padding: 1rem;
+  background-color: #f9f9f9;
 }
 
-/* Estilo do título do produto */
+/* Título */
 .product-title {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: #333; /* Cor do título */
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0.5rem 1rem 0.25rem;
+  color: #333;
+  text-align: center;
 }
 
-/* Preço do produto */
+/* Preço */
 .product-price {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: bold;
-  color: #28a745; /* Verde para preço */
-  margin-bottom: 10px;
+  color: #28a745;
+  margin: 0.25rem 1rem;
+  text-align: center;
 }
 
-/* Descrição do produto */
+/* Descrição */
 .product-description {
-  font-size: 0.9rem;
-  color: #666; /* Texto mais suave */
-  margin-bottom: 15px;
-  height: 60px; /* Limita a altura da descrição */
-  overflow: hidden; /* Esconde o texto que ultrapassar */
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0.25rem 1rem 1rem;
+  height: 60px;
+  overflow: hidden;
+  text-align: center;
 }
 
-/* Botões de ação */
-.product-btn {
-  padding: 5px 10px;
-  font-size: 0.9rem;
-  border-radius: 5px; /* Arredonda os botões */
+/* Ações */
+.card-body .btn {
+  width: 48%;
+  font-size: 0.85rem;
+  padding: 6px 0;
 }
 
-/* Ajustes para os botões */
-.product-btn:hover {
-  opacity: 0.8; /* Efeito de hover para os botões */
+/* Botões */
+.btn-success, .btn-danger {
+  font-size: 0.85rem;
+  padding: 6px 0;
 }
 
-/* Paginação */
+.d-flex.justify-content-between {
+  padding: 0 1rem 1rem;
+  gap: 0.5rem;
+}
+
+/* =========================
+   Paginação
+   ========================= */
 .pagination {
   display: flex;
   justify-content: center;
   margin-top: 20px;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.page-item {
+  list-style: none;
+}
+
+.page-link {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #333;
+  background-color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.page-link:hover {
+  background-color: #f0f0f0;
 }
 
 .page-item.disabled .page-link {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
-
 .page-item.active .page-link {
-  background-color: #28a745; /* Cor ativa na página */
+  background-color: #28a745;
   color: white;
   border-color: #28a745;
 }
 
-.page-item .page-link {
-  color: #333; /* Cor normal do texto da página */
+
+
+/* ESTILOS DO MODAL (VERSÃO FINAL) */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-container {
+  width: 90%;
+  max-width: 500px;
+  animation: fadeIn 0.3s;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+
+  h3 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+    }
+
+    textarea {
+      min-height: 80px;
+    }
+  }
+
+  .image-preview {
+    margin: 10px 0;
+    text-align: center;
+
+    img {
+      max-height: 150px;
+      max-width: 100%;
+      border: 1px dashed #ccc;
+      padding: 5px;
+      object-fit: contain;
+    }
+  }
+
+  .file-upload {
+    display: inline-block;
+    padding: 8px 15px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    cursor: pointer;
+
+    input {
+      display: none;
+    }
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+
+      &:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+      }
+    }
+
+    .btn-cancel {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-save {
+      background: #28a745;
+      color: white;
+    }
+  }
+}
+
+/* ANIMAÇÃO */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }

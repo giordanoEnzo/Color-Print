@@ -10,7 +10,6 @@ const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
 
-
 const app = express();
 const port = process.env.PORT || 2000;
 
@@ -164,11 +163,10 @@ app.get('/api/pix/status/:id', async (req, res) => {
 });
 
 
-
 // Configuração do multer para o upload de imagens
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, './uploads/'); // Define o diretório de destino para armazenar as imagens
+    cb(null, './uploads/produtos'); 
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname); // Pega a extensão do arquivo
@@ -180,7 +178,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Middleware para servir arquivos estáticos da pasta 'uploads'
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads/produtos', express.static(path.join(__dirname, 'uploads/produtos')));
 
 
 // Rota de login
@@ -229,7 +227,6 @@ app.post('/api/login', async (req, res) => {
 });
 
 
-
 // Endpoint para listar categorias e seus produtos
 app.get('/api/categorias-com-produtos', async (req, res) => {
   try {
@@ -255,6 +252,25 @@ app.get('/api/categorias-com-produtos', async (req, res) => {
     res.status(500).json({ erro: 'Erro interno ao buscar dados.' });
   }
 });
+
+app.get('/api/produtos', async (req, res) => {
+  try {
+    const [produtos] = await db.promise().query('SELECT * FROM produtos');
+
+    const produtosComImagem = produtos.map(produto => ({
+      ...produto,
+      imagemUrl: produto.imagem
+        ? `${req.protocol}://${req.headers.host}/uploads/produtos/${produto.imagem}`
+        : null
+    }));
+
+    res.json(produtosComImagem);
+  } catch (error) {
+    console.error('Erro ao buscar produtos:', error);
+    res.status(500).json({ erro: 'Erro ao buscar produtos.' });
+  }
+});
+
 
 
 
