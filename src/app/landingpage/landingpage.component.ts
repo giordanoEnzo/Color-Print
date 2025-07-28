@@ -176,4 +176,11 @@ export class LandingpageComponent implements OnInit {
       }
     });
   }
+
+  getImagemUrl(imagem: string): string {
+    if (!imagem) return 'assets/images/placeholder.jpg'; // fallback se não tiver imagem
+    return `http://192.168.99.103:5000/uploads/produtos/${imagem}`;
+  }
+
+
 }

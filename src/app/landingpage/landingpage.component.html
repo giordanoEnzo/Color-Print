@@ -1,3 +1,4 @@
+<!-- BARRA DE PROMOÇÃO -->
 <div class="promo-bar">
   <div class="promo-track">
     <div class="promo-content">
@@ -10,9 +11,9 @@
 </div>
 
 <div class="landingpage-wrapper">
+  <app-header (checkoutClicked)="finalizarCompra()"></app-header>
 
-<app-header (checkoutClicked)="finalizarCompra()"></app-header>
-
+  <!-- BANNER -->
   <section class="banner fade-in">
     <div class="carousel">
       <div 
@@ -23,21 +24,20 @@
         <img [src]="slide.imagem" [alt]="slide.alt" class="banner-bg" />
       </div>
 
-      <!-- Highlight card permanece fixo -->
+      <!-- Destaque fixo -->
       <div class="highlight-card">
-        <img src="assets/images/produtos/SC001.jpg" alt="Produto em destaque" />
-        <h4>Placas adesivas proibido estacionar 2x2 100 Unidades</h4>
-        <p>R$ 35,00</p>
+        <img [src]="getImagemUrl(produtoDestaque.imagem)" alt="Produto em destaque" />
+        <h4>{{ produtoDestaque.nome }}</h4>
+        <p>{{ produtoDestaque.preco | currency:'BRL' }}</p>
         <button class="btn-pulse" (click)="abrirModal(produtoDestaque)">ADICIONAR CARRINHO</button>
       </div>
 
-      <!-- Botões de navegação -->
       <button class="carousel-btn prev" (click)="voltarSlide()">‹</button>
       <button class="carousel-btn next" (click)="avancarSlide()">›</button>
     </div>
   </section>
 
-
+  <!-- FILTROS E PRODUTOS -->
   <div class="filtros-container">
     <aside class="filtros-categorias">
       <h4>Buscar por</h4>
@@ -61,18 +61,17 @@
         <div class="products-grid">
           <div *ngFor="let produto of categoria.produtos.slice(0, 3)" class="product-card" (click)="abrirModal(produto)">
             <div class="product-image-container">
-              <img [src]="produto.imagem" [alt]="produto.nome" />
+              <img [src]="getImagemUrl(produto.imagem)" [alt]="produto.nome" />
             </div>
             <h4 class="product-name">{{ produto.nome }}</h4>
-            <p class="product-price">A partir de : {{ produto.preco | currency:'BRL' }}</p>
-
+            <p class="product-price">A partir de: {{ produto.preco | currency:'BRL' }}</p>
             <button class="add-to-cart-btn" (click)="abrirModal(produto)">ADICIONAR CARRINHO</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- CATEGORIA SELECIONADA: mostra todos os produtos dela -->
+    <!-- CATEGORIA SELECIONADA -->
     <section class="bestsellers fade-in" *ngIf="categoriaSelecionada">
       <div class="section-header">
         <h3>{{ categoriaSelecionada.nome }}</h3>
@@ -81,67 +80,50 @@
       <div class="products-grid">
         <div *ngFor="let produto of produtosDaCategoria" class="product-card" (click)="abrirModal(produto)">
           <div class="product-image-container">
-            <img [src]="produto.imagem" [alt]="produto.nome" />
+            <img [src]="getImagemUrl(produto.imagem)" [alt]="produto.nome" />
           </div>
           <h4 class="product-name">{{ produto.nome }}</h4>
           <p class="product-price">{{ produto.preco | currency:'BRL' }}</p>
-          <!-- <button class="add-to-cart-btn" (click)="adicionarAoCarrinho(produto)">ADICIONAR CARRINHO</button> -->
           <button class="add-to-cart-btn" (click)="abrirModal(produto)">ADICIONAR CARRINHO</button>
         </div>
       </div>
     </section>
   </div>
 
-  <!-- <section class="highlight-offer fade-in">
-    <div class="offer-text">
-      <h2>CARTÃO DE VISITA 20% OFF</h2>
-      <p>Exclusive</p>
-      <button class="buy-button btn-pulse">comprar agora</button>
-    </div>
-    <div class="offer-image">
-      <img src="assets/images/produto4.jpg" alt="Cartão de visita em promoção" />
-    </div>
-  </section> -->
-
-  
-
-  <!-- ...[demais seções como header, filtros e footer permanecem iguais]... -->
-
-  <!-- Modal DETALHE DOS PRODUTOS -->
+  <!-- MODAL DE PRODUTO -->
   <div class="modal-backdrop" (click)="fecharModal()" *ngIf="produtoSelecionado"></div>
 
   <div class="product-modal" *ngIf="produtoSelecionado">
-  <button class="close-btn" (click)="fecharModal()">✖</button>
+    <button class="close-btn" (click)="fecharModal()">✖</button>
 
-  <div class="modal-content">
-    <!-- LADO ESQUERDO: IMAGEM -->
-    <div class="modal-left">
-      <img [src]="produtoSelecionado.imagem" [alt]="produtoSelecionado.nome" class="modal-img" />
-    </div>
-
-    <!-- LADO DIREITO: INFO -->
-    <div class="modal-right">
-      <br /><br />
-      <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
-      <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
-
-       <!-- Tamanhos como botão --> 
-       <label class="input-label">Tamanho:</label>
-       <div class="input-group">
-        <div class="button-group">
-          <button
-            *ngFor="let tamanho of tamanhos"
-            (click)="selecionarTamanho(tamanho)"
-            [ngClass]="{ 'tamanho-btn-active': tamanhoSelecionado === tamanho }"
-            class="tamanho-btn"
-          >
-            <strong>{{ tamanho.label }}</strong><br />
-            <small>{{ tamanho.preco | currency: 'BRL' }}</small>
-          </button>
-        </div>
+    <div class="modal-content">
+      <!-- LADO ESQUERDO: IMAGEM -->
+      <div class="modal-left">
+        <img [src]="getImagemUrl(produtoSelecionado.imagem)" [alt]="produtoSelecionado.nome" class="modal-img" />
       </div>
 
-        <!-- Contador de quantidade -->
+      <!-- LADO DIREITO: INFO -->
+      <div class="modal-right">
+        <br /><br />
+        <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
+        <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
+
+        <label class="input-label">Tamanho:</label>
+        <div class="input-group">
+          <div class="button-group">
+            <button
+              *ngFor="let tamanho of tamanhos"
+              (click)="selecionarTamanho(tamanho)"
+              [ngClass]="{ 'tamanho-btn-active': tamanhoSelecionado === tamanho }"
+              class="tamanho-btn"
+            >
+              <strong>{{ tamanho.label }}</strong><br />
+              <small>{{ tamanho.preco | currency: 'BRL' }}</small>
+            </button>
+          </div>
+        </div>
+
+        <!-- QUANTIDADE -->
         <div class="quantidade-control">
           <label>Quantidade:</label>
           <div class="contador">
@@ -151,7 +133,6 @@
           </div>
         </div>
 
-        <!-- Preço calculado -->
         <p class="preco-calculado">
           TOTAL: {{ precoCalculado | currency:'BRL' }}
         </p>
@@ -159,13 +140,9 @@
         <button class="adicionar-btn" (click)="adicionarSelecionadoAoCarrinho()">
           Adicionar ao carrinho
         </button>
-  
+      </div>
     </div>
   </div>
-</div>
-
-
-
 </div>
 
 <app-footer></app-footer>
