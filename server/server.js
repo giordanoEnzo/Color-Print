@@ -385,10 +385,37 @@ app.put('/api/produtos/:id', upload.single('imagem'), async (req, res) => {
 });
 
 
+app.delete('/api/produtos/:id', async (req, res) => {
+  const id = req.params.id;
 
+  try {
+    // Verifica se o produto existe
+    const [rows] = await db.promise().query('SELECT * FROM produtos WHERE id = ?', [id]);
 
+    if (rows.length === 0) {
+      return res.status(404).json({ erro: 'Produto não encontrado' });
+    }
 
+    const produto = rows[0];
 
+    // Deleta a imagem do disco
+    if (produto.imagem) {
+      const caminhoImagem = path.join(__dirname, 'uploads/produtos', produto.imagem);
+      if (fs.existsSync(caminhoImagem)) {
+        fs.unlinkSync(caminhoImagem);
+      }
+    }
+
+    // Remove o produto do banco
+    await db.promise().query('DELETE FROM produtos WHERE id = ?', [id]);
+
+    res.json({ success: true, mensagem: 'Produto deletado com sucesso!' });
+
+  } catch (error) {
+    console.error('Erro ao deletar produto:', error);
+    res.status(500).json({ erro: 'Erro interno ao deletar o produto.' });
+  }
+});
 
 
 const ip = '0.0.0.0'; // Permite conexões externas
