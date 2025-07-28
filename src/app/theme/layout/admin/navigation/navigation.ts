@@ -145,6 +145,14 @@ const NavigationItems = [
         classes: 'nav-item',
         icon: 'feather icon-server'
       },
+      {
+        id: 'Categorias',
+        title: 'Categorias',
+        type: 'item',
+        url: '/tables/categorias',
+        classes: 'nav-item',
+        icon: 'feather icon-server'
+      },
       // {
       //   id: 'Funcionarios',
       //   title: 'Funcionarios',

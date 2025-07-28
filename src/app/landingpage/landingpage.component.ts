@@ -17,6 +17,7 @@ interface Categoria {
   templateUrl: './landingpage.component.html',
   styleUrls: ['./landingpage.component.scss']
 })
+
 export class LandingpageComponent implements OnInit {
   categoriasComProdutos: Categoria[] = [];
   categoriaSelecionada: Categoria | null = null;
