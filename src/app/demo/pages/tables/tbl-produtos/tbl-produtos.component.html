@@ -2,7 +2,8 @@
   <div class="col-xl-12">
     <app-card cardTitle="Produtos" [options]="false" [buttonh]="true" buttonTitle="Adicionar produto" [buttonAction]="toggleFormulario.bind(this)">
       <div class="row">
-        <div *ngFor="let produto of produtosPaginados" class="col-md-auto">
+          <div *ngFor="let produto of produtosPaginados" class="product-wrapper col-auto">
+
           <div class="card product-card">
             <!-- Imagem do produto -->
             <img [src]="produto.imagemUrl" alt="{{ produto.nome }}" class="card-img-top product-image" />

@@ -13,20 +13,19 @@ export class TblProdutosComponent implements OnInit {
   categorias: any[] = [];
   erro: string | null = null;
 
-  novoProduto: any = {
+  novoProduto: Produto = {
     id_produto: 0,
     nome: '',
     descricao: '',
     preco: 0,
-    estoque: 0,
-    destaque: false,
-    id_categoria: null,
     imagem: null,
     imagemUrl: '',
-    categoria: ''
+    estoque: 0,
+    id_categoria: undefined,
+    destaque: false,
   };
 
-  produtoEmEdicao: any = null;
+  produtoEmEdicao: Produto | null = null;
   imagemEditada: File | null = null;
 
   mostrarFormulario = false;
@@ -49,8 +48,6 @@ export class TblProdutosComponent implements OnInit {
   carregarCategorias(): void {
     this.produtoService.getCategorias().subscribe(
       (categorias) => {
-
-        console.log('Categorias recebidas:', categorias); // ← Adicione esta linha
         this.categorias = categorias;
       },
       (error) => {
@@ -72,19 +69,21 @@ export class TblProdutosComponent implements OnInit {
       nome: '',
       descricao: '',
       preco: 0,
-      estoque: 0,
-      destaque: false,
-      id_categoria: null,
       imagem: null,
       imagemUrl: '',
-      categoria: ''
+      estoque: 0,
+      id_categoria: undefined,
+      destaque: false,
     };
   }
 
   carregarProdutos(): void {
     this.produtoService.getProdutos().subscribe(
-      (response: Produto[]) => {
-        this.produtos = response;
+      (response: any[]) => {
+        this.produtos = response.map(produto => ({
+          ...produto,
+          id_produto: produto.id // mapeamento automático, opcional
+        }));
         this.atualizarPaginacao();
         this.toastr.success('Produtos carregados com sucesso!', 'Sucesso');
       },
@@ -118,10 +117,10 @@ export class TblProdutosComponent implements OnInit {
     formData.append('nome', this.novoProduto.nome);
     formData.append('descricao', this.novoProduto.descricao || '');
     formData.append('preco', this.novoProduto.preco.toString());
-    formData.append('estoque', this.novoProduto.estoque.toString());
+    formData.append('estoque', this.novoProduto.estoque?.toString() || '0');
     formData.append('destaque', this.novoProduto.destaque ? '1' : '0');
     formData.append('id_categoria', this.novoProduto.id_categoria?.toString() || '');
-    
+
     if (this.novoProduto.imagem) {
       formData.append('imagem', this.novoProduto.imagem);
     }
@@ -172,35 +171,49 @@ export class TblProdutosComponent implements OnInit {
   }
 
   editarProduto(produto: any): void {
-    this.produtoEmEdicao = { ...produto };
+    this.produtoEmEdicao = {
+      ...produto,
+      id_produto: produto.id // 👈 mapeia o campo certo
+    };
     this.imagemEditada = null;
   }
 
   salvarEdicao(): void {
     if (!this.produtoEmEdicao) return;
 
+    const {
+      id_produto,
+      nome,
+      descricao,
+      preco,
+      estoque,
+      destaque,
+      id_categoria
+    } = this.produtoEmEdicao;
+
+    if (!nome || preco == null || estoque == null || id_categoria == null) {
+      this.toastr.warning('Preencha todos os campos obrigatórios antes de salvar.', 'Atenção');
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('nome', this.produtoEmEdicao.nome);
-    formData.append('descricao', this.produtoEmEdicao.descricao || '');
-    formData.append('preco', this.produtoEmEdicao.preco.toString());
-    formData.append('estoque', this.produtoEmEdicao.estoque.toString());
-    formData.append('destaque', this.produtoEmEdicao.destaque ? '1' : '0');
-    formData.append('id_categoria', this.produtoEmEdicao.id_categoria?.toString() || '');
+    formData.append('nome', nome);
+    formData.append('descricao', descricao || '');
+    formData.append('preco', preco.toString());
+    formData.append('estoque', estoque.toString());
+    formData.append('destaque', destaque ? '1' : '0');
+    formData.append('id_categoria', id_categoria.toString());
 
     if (this.imagemEditada) {
       formData.append('imagem', this.imagemEditada);
-    } else if (this.produtoEmEdicao.imagemUrl) {
-      formData.append('imagem', this.produtoEmEdicao.imagemUrl);
     }
 
-    this.produtoService.updateProduto(
-      this.produtoEmEdicao.id_produto.toString(), 
-      formData
-    ).subscribe({
+    this.produtoService.updateProduto(id_produto.toString(), formData).subscribe({
       next: () => {
         this.toastr.success('Produto atualizado com sucesso!', 'Sucesso');
         this.carregarProdutos();
         this.produtoEmEdicao = null;
+        this.imagemEditada = null;
       },
       error: (error) => {
         this.toastr.error('Erro ao atualizar produto', 'Erro');

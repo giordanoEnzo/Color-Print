@@ -9,5 +9,5 @@ export interface Produto {
   categoria?: string; // String para exibição
   id_categoria?: number; // Adicionado para referência ao ID
   destaque?: boolean; // Adicionado
-  estoque?: number; // Sinônimo de quantidade_estoque
+  estoque?: number; //quantidade_estoque
 }

@@ -326,6 +326,68 @@ app.post('/api/produtos', upload.single('imagem'), async (req, res) => {
 });
 
 
+app.put('/api/produtos/:id', upload.single('imagem'), async (req, res) => {
+  const id = req.params.id;
+  const { nome, preco, destaque, estoque, id_categoria, descricao } = req.body;
+
+  try {
+    // Verifica se o produto existe (com base no campo id, não id_produto)
+    const [produtoAtual] = await db.promise().query('SELECT * FROM produtos WHERE id = ?', [id]);
+
+    if (produtoAtual.length === 0) {
+      return res.status(404).json({ erro: 'Produto não encontrado' });
+    }
+
+    let imagem = produtoAtual[0].imagem;
+
+    // Se uma nova imagem foi enviada, substitui a antiga
+    if (req.file) {
+      imagem = req.file.filename;
+
+      // Apaga a imagem antiga (se existir)
+      if (produtoAtual[0].imagem) {
+        const caminhoImagem = path.join(__dirname, 'uploads/produtos', produtoAtual[0].imagem);
+        if (fs.existsSync(caminhoImagem)) {
+          fs.unlinkSync(caminhoImagem);
+        }
+      }
+    }
+
+    // Atualiza os dados no banco
+    await db.promise().query(
+      `UPDATE produtos SET 
+        nome = ?, 
+        descricao = ?, 
+        preco = ?, 
+        imagem = ?, 
+        destaque = ?, 
+        estoque = ?, 
+        id_categoria = ?
+      WHERE id = ?`,
+      [
+        nome,
+        descricao || '',
+        parseFloat(preco),
+        imagem,
+        destaque === '1' ? 1 : 0,
+        parseInt(estoque) || 0,
+        id_categoria || null,
+        id
+      ]
+    );
+
+    res.json({ success: true, mensagem: 'Produto atualizado com sucesso!' });
+
+  } catch (error) {
+    console.error('Erro ao atualizar produto:', error);
+    res.status(500).json({ erro: 'Erro interno ao atualizar o produto.' });
+  }
+});
+
+
+
+
+
 
 
 
