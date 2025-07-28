@@ -10,36 +10,53 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class TblProdutosComponent implements OnInit {
   produtos: Produto[] = [];
+  categorias: any[] = [];
   erro: string | null = null;
 
-  novoProduto: Produto = {
+  novoProduto: any = {
     id_produto: 0,
     nome: '',
     descricao: '',
     preco: 0,
-    quantidade_estoque: 0,
+    estoque: 0,
+    destaque: false,
+    id_categoria: null,
     imagem: null,
     imagemUrl: '',
-    categoria: '',
+    categoria: ''
   };
 
-  produtoEmEdicao: Produto | null = null;
+  produtoEmEdicao: any = null;
   imagemEditada: File | null = null;
 
   mostrarFormulario = false;
   currentPage: number = 1;
-  itemsPerPage: number = 6;
+  itemsPerPage: number = 10;
   totalPages: number = 0;
   produtosPaginados: Produto[] = [];
   pages: number[] = [];
 
   constructor(
-    private ProdutoService: ProdutoService,
+    private produtoService: ProdutoService,
     private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
     this.carregarProdutos();
+    this.carregarCategorias();
+  }
+
+  carregarCategorias(): void {
+    this.produtoService.getCategorias().subscribe(
+      (categorias) => {
+
+        console.log('Categorias recebidas:', categorias); // ← Adicione esta linha
+        this.categorias = categorias;
+      },
+      (error) => {
+        console.error('Erro ao carregar categorias:', error);
+      }
+    );
   }
 
   toggleFormulario(): void {
@@ -55,15 +72,17 @@ export class TblProdutosComponent implements OnInit {
       nome: '',
       descricao: '',
       preco: 0,
-      quantidade_estoque: 0,
+      estoque: 0,
+      destaque: false,
+      id_categoria: null,
       imagem: null,
       imagemUrl: '',
-      categoria: '',
+      categoria: ''
     };
   }
 
   carregarProdutos(): void {
-    this.ProdutoService.getProdutos().subscribe(
+    this.produtoService.getProdutos().subscribe(
       (response: Produto[]) => {
         this.produtos = response;
         this.atualizarPaginacao();
@@ -93,52 +112,52 @@ export class TblProdutosComponent implements OnInit {
   }
 
   adicionarProduto(): void {
+    if (!this.validarProduto()) return;
+
     const formData = new FormData();
-    
-    // Campos obrigatórios
     formData.append('nome', this.novoProduto.nome);
+    formData.append('descricao', this.novoProduto.descricao || '');
     formData.append('preco', this.novoProduto.preco.toString());
-    
-    // Campos condicionais (alinhados com sua interface)
-    if (this.novoProduto.descricao) {
-      formData.append('descricao', this.novoProduto.descricao);
-    }
+    formData.append('estoque', this.novoProduto.estoque.toString());
+    formData.append('destaque', this.novoProduto.destaque ? '1' : '0');
+    formData.append('id_categoria', this.novoProduto.id_categoria?.toString() || '');
     
     if (this.novoProduto.imagem) {
       formData.append('imagem', this.novoProduto.imagem);
     }
 
-    // Novos campos (com fallback seguro)
-    formData.append(
-      'destaque', 
-      (this.novoProduto as any).destaque ? '1' : '0' // Type assertion temporária
-    );
-    
-    formData.append(
-      'estoque', 
-      ((this.novoProduto as any).estoque || 0).toString()
-    );
-    
-    formData.append(
-      'id_categoria', 
-      (this.novoProduto.id_categoria || '').toString()
-    );
-
-    this.ProdutoService.addProduto(formData).subscribe({
+    this.produtoService.addProduto(formData).subscribe({
       next: (res) => {
-        this.toastr.success('Produto cadastrado!', 'Sucesso');
+        this.toastr.success('Produto cadastrado com sucesso!', 'Sucesso');
         this.carregarProdutos();
         this.toggleFormulario();
       },
       error: (err) => {
-        this.toastr.error(err.error?.erro || 'Erro ao cadastrar', 'Falha');
+        this.toastr.error(err.error?.erro || 'Erro ao cadastrar produto', 'Erro');
+        console.error('Erro:', err);
       }
     });
   }
 
+  validarProduto(): boolean {
+    if (!this.novoProduto.nome) {
+      this.toastr.warning('O nome do produto é obrigatório', 'Atenção');
+      return false;
+    }
+    if (!this.novoProduto.preco || this.novoProduto.preco <= 0) {
+      this.toastr.warning('O preço deve ser maior que zero', 'Atenção');
+      return false;
+    }
+    if (!this.novoProduto.imagem) {
+      this.toastr.warning('Selecione uma imagem para o produto', 'Atenção');
+      return false;
+    }
+    return true;
+  }
+
   deletarProduto(id: number): void {
     if (confirm('Tem certeza que deseja excluir este produto?')) {
-      this.ProdutoService.deleteProduto(id.toString()).subscribe(
+      this.produtoService.deleteProduto(id.toString()).subscribe(
         () => {
           this.produtos = this.produtos.filter(p => p.id_produto !== id);
           this.atualizarPaginacao();
@@ -152,73 +171,71 @@ export class TblProdutosComponent implements OnInit {
     }
   }
 
-  editarProduto(produto: Produto): void {
+  editarProduto(produto: any): void {
     this.produtoEmEdicao = { ...produto };
     this.imagemEditada = null;
   }
 
+  salvarEdicao(): void {
+    if (!this.produtoEmEdicao) return;
+
+    const formData = new FormData();
+    formData.append('nome', this.produtoEmEdicao.nome);
+    formData.append('descricao', this.produtoEmEdicao.descricao || '');
+    formData.append('preco', this.produtoEmEdicao.preco.toString());
+    formData.append('estoque', this.produtoEmEdicao.estoque.toString());
+    formData.append('destaque', this.produtoEmEdicao.destaque ? '1' : '0');
+    formData.append('id_categoria', this.produtoEmEdicao.id_categoria?.toString() || '');
+
+    if (this.imagemEditada) {
+      formData.append('imagem', this.imagemEditada);
+    } else if (this.produtoEmEdicao.imagemUrl) {
+      formData.append('imagem', this.produtoEmEdicao.imagemUrl);
+    }
+
+    this.produtoService.updateProduto(
+      this.produtoEmEdicao.id_produto.toString(), 
+      formData
+    ).subscribe({
+      next: () => {
+        this.toastr.success('Produto atualizado com sucesso!', 'Sucesso');
+        this.carregarProdutos();
+        this.produtoEmEdicao = null;
+      },
+      error: (error) => {
+        this.toastr.error('Erro ao atualizar produto', 'Erro');
+        console.error('Erro ao atualizar produto:', error);
+      }
+    });
+  }
+
   onFileSelected(event: any): void {
-    const file: File = event.target.files[0];
+    const file = event.target.files[0];
     if (file) {
       this.novoProduto.imagem = file;
-    }
-  }
-
-  onFileChangeEdicao(event: any): void {
-    const file: File = event.target.files[0];
-    if (file) {
-      this.imagemEditada = file;
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (this.produtoEmEdicao) {
-          this.produtoEmEdicao.imagemUrl = reader.result as string;
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  salvarEdicao(): void {
-    if (this.produtoEmEdicao) {
-      const formData: FormData = new FormData();
-      formData.append('nome', this.produtoEmEdicao.nome);
-      formData.append('descricao', this.produtoEmEdicao.descricao);
-      formData.append('preco', this.produtoEmEdicao.preco.toString());
-      formData.append('quantidade_estoque', this.produtoEmEdicao.quantidade_estoque.toString());
-      formData.append('categoria', this.produtoEmEdicao.categoria);
-
-      if (this.produtoEmEdicao.imagem) {
-        formData.append('imagem', this.produtoEmEdicao.imagem);
-      }
-
-      this.ProdutoService.updateProduto(this.produtoEmEdicao.id_produto.toString(), formData).subscribe(
-        () => {
-          this.carregarProdutos();
-          this.produtoEmEdicao = null;
-          this.toastr.success('Produto atualizado com sucesso!', 'Sucesso');
-        },
-        (error) => {
-          this.toastr.error('Erro ao atualizar produto', 'Erro');
-          console.error('Erro ao atualizar produto:', error);
-        }
-      );
+      this.gerarPreview(file, 'novoProduto');
     }
   }
 
   onFileSelectedEdicao(event: any): void {
-    const file: File = event.target.files[0];
+    const file = event.target.files[0];
     if (file && this.produtoEmEdicao) {
-      this.produtoEmEdicao.imagem = file;
-
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.produtoEmEdicao!.imagemUrl = e.target.result;
-      };
-      reader.readAsDataURL(file);
+      this.imagemEditada = file;
+      this.gerarPreview(file, 'produtoEmEdicao');
     }
   }
 
+  gerarPreview(file: File, target: 'novoProduto' | 'produtoEmEdicao'): void {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      if (target === 'novoProduto') {
+        this.novoProduto.imagemUrl = e.target.result;
+      } else if (this.produtoEmEdicao) {
+        this.produtoEmEdicao.imagemUrl = e.target.result;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
 
   cancelarEdicao(): void {
     this.produtoEmEdicao = null;

@@ -35,29 +35,70 @@
     <app-card cardTitle="Adicionar Produto" [options]="false">
       <div class="form-container">
         <form (ngSubmit)="adicionarProduto()">
+          <!-- Campos existentes -->
           <div class="form-group">
-            <label for="nome">Nome</label>
-            <input id="nome" class="form-control" [(ngModel)]="novoProduto.nome" name="nome" required />
+            <label for="nome">Nome*</label>
+            <input id="nome" class="form-control" [(ngModel)]="novoProduto.nome" name="nome" required>
           </div>
+          
           <div class="form-group">
-            <label for="descricao">Descrição</label>
-            <textarea id="descricao" class="form-control" [(ngModel)]="novoProduto.descricao" name="descricao"></textarea>
+            <label for="descricao">Descrição*</label>
+            <textarea
+              id="descricao"
+              class="form-control"
+              [(ngModel)]="novoProduto.descricao"
+              name="descricao"
+              placeholder="Descreva o produto"
+              required
+              rows="3"
+            ></textarea>
           </div>
+          
           <div class="form-group">
-            <label for="preco">Preço</label>
-            <input id="preco" type="number" class="form-control" [(ngModel)]="novoProduto.preco" name="preco" required />
+            <label for="preco">Preço (R$)*</label>
+            <input id="preco" type="number" step="0.01" class="form-control" [(ngModel)]="novoProduto.preco" name="preco" required>
           </div>
+
+          <!-- Novos campos -->
           <div class="form-group">
-            <label for="quantidade_estoque">Quantidade em Estoque</label>
-            <input id="quantidade_estoque" type="number" class="form-control" [(ngModel)]="novoProduto.quantidade_estoque" name="quantidade_estoque" required />
+            <label for="destaque">
+              <input id="destaque" type="checkbox" [(ngModel)]="novoProduto.destaque" name="destaque">
+              Produto em Destaque
+            </label>
           </div>
-          <!-- Campo de upload de imagem -->
+          
           <div class="form-group">
-            <label for="imagem">Imagem do Produto</label>
-            <input type="file" class="form-control" (change)="onFileSelected($event)" name="imagem" />
+            <label for="estoque">Estoque*</label>
+            <input id="estoque" type="number" class="form-control" [(ngModel)]="novoProduto.estoque" name="estoque" required>
           </div>
-          <button type="submit" class="btn btn-success">Salvar</button>
-          <button type="button" class="btn btn-secondary" (click)="toggleFormulario()">Cancelar</button>
+          
+            <!-- Dentro do formulário de adição/edição de produto -->
+          <div class="form-group">
+            <label for="categoria">Categoria*</label>
+            <select 
+              id="categoria" 
+              [(ngModel)]="novoProduto.id_categoria" 
+              name="id_categoria" 
+              class="form-control" 
+              required
+            >
+              <option value="">Selecione uma categoria</option>
+              <option *ngFor="let categoria of categorias" [value]="categoria.id_categoria">
+                {{ categoria.nome }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Campo de imagem (existente) -->
+          <div class="form-group">
+            <label for="imagem">Imagem*</label>
+            <input type="file" id="imagem" class="form-control" (change)="onFileSelected($event)" accept="image/*" required>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="toggleFormulario()">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+          </div>
         </form>
       </div>
     </app-card>
@@ -81,15 +122,17 @@
                  required>
         </div>
 
-        <!-- Descrição -->
         <div class="form-group">
-          <label>Descrição*</label>
-          <textarea [(ngModel)]="produtoEmEdicao.descricao" 
-                    name="descricao"
-                    class="form-control" 
-                    rows="3"
-                    placeholder="Detalhes do produto..."
-                    required></textarea>
+          <label for="descricaoEdicao">Descrição*</label>
+          <textarea
+            id="descricaoEdicao"
+            [(ngModel)]="produtoEmEdicao.descricao"
+            name="descricaoEdicao"
+            class="form-control"
+            rows="3"
+            placeholder="Detalhes do produto..."
+            required
+          ></textarea>
         </div>
 
         <!-- Preço -->

@@ -271,11 +271,23 @@ app.get('/api/produtos', async (req, res) => {
   }
 });
 
+// Nova rota (correta):
+app.get('/api/categorias', (req, res) => {
+  const sql = 'SELECT id_categoria, nome, descricao FROM categorias WHERE ativo = 1';
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.error('Erro no MySQL:', err);
+      return res.status(500).json({ erro: 'Erro no banco de dados' });
+    }
+    res.json(result);
+  });
+});
+
 
 app.post('/api/produtos', upload.single('imagem'), async (req, res) => {
   try {
-    // Extrai os dados do FormData
-    const { nome, preco, destaque, estoque, id_categoria } = req.body;
+    // Extrai os dados do FormData, incluindo descrição
+    const { nome, preco, destaque, estoque, id_categoria, descricao } = req.body;
     const imagem = req.file?.filename || '';
 
     // Validação mínima (imagem é obrigatória na sua tabela)
@@ -283,22 +295,22 @@ app.post('/api/produtos', upload.single('imagem'), async (req, res) => {
       return res.status(400).json({ erro: 'A imagem é obrigatória' });
     }
 
-    // Insere no banco exatamente como sua estrutura
+    // Insere no banco incluindo descrição
     const [result] = await db.promise().query(
       `INSERT INTO produtos 
-       (nome, preco, imagem, destaque, estoque, id_categoria) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       (nome, descricao, preco, imagem, destaque, estoque, id_categoria) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         nome,
+        descricao || '',            // <-- adiciona descrição aqui
         parseFloat(preco), 
         imagem,
-        destaque === '1' ? 1 : 0, // Converte para TINYINT
+        destaque === '1' ? 1 : 0,
         parseInt(estoque) || 0,
         id_categoria || null
       ]
     );
 
-    // Retorna resposta simplificada
     res.json({ 
       success: true,
       id: result.insertId 
@@ -312,6 +324,7 @@ app.post('/api/produtos', upload.single('imagem'), async (req, res) => {
     });
   }
 });
+
 
 
 

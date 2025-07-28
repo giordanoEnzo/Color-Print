@@ -23,6 +23,12 @@ export class ProdutoService {
     return this.http.get(`${this.apiUrl}/produtos/${id}`);
   }
 
+  // MÉTODO NOVO: Busca apenas categorias (sem produtos)
+  getCategorias(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/categorias`);
+  }
+
+
   // Método para obter produtos por categoria
   getProdutosPorCategoria(categoriaId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/produtos/categoria/${categoriaId}`);
