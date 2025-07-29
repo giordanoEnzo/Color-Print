@@ -1,1 +1,72 @@
-<p>tbl-categorias works!</p>
+<!-- tbl-categorias.component.html -->
+<div class="row">
+  <div class="col-xl-12">
+    <button class="btn btn-success mb-3" (click)="abrirModalNovaCategoria()">+ Nova Categoria</button>
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Status</th>
+            <th>Data de Criação</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cat of categorias">
+            <td>{{ cat.id_categoria }}</td>
+            <td>{{ cat.nome }}</td>
+            <td>{{ cat.descricao }}</td>
+            <td>
+              <span [ngClass]="{ 'text-success': cat.ativo, 'text-danger': !cat.ativo }">
+                {{ cat.ativo ? 'Ativo' : 'Inativo' }}
+              </span>
+            </td>
+            <td>{{ cat.data_criacao | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <a href="javascript:" class="label theme-bg text-white f-12 rounded-pill" (click)="editarCategoria(cat)">Editar</a>
+              <a href="javascript:" class="label bg-danger text-white f-12 rounded-pill" (click)="excluirCategoria(cat)">Excluir</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Categoria -->
+<div class="modal" *ngIf="mostrarModalCategoria">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ categoriaSelecionada?.id_categoria ? 'Editar Categoria' : 'Nova Categoria' }}</h5>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nome</label>
+          <input class="form-control" [(ngModel)]="categoriaSelecionada!.nome" required />
+        </div>
+
+        <div class="form-group">
+          <label>Descrição</label>
+          <textarea class="form-control" [(ngModel)]="categoriaSelecionada!.descricao"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select class="form-control" [(ngModel)]="categoriaSelecionada!.ativo">
+            <option [ngValue]="true">Ativo</option>
+            <option [ngValue]="false">Inativo</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" (click)="salvarCategoria()">Salvar</button>
+        <button class="btn btn-secondary" (click)="fecharModalCategoria()">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show" *ngIf="mostrarModalCategoria"></div>

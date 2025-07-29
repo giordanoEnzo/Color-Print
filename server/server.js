@@ -418,6 +418,70 @@ app.delete('/api/produtos/:id', async (req, res) => {
 });
 
 
+// Criar nova categoria
+app.post('/api/categorias', async (req, res) => {
+  const { nome, descricao, ativo } = req.body;
+
+  if (!nome) {
+    return res.status(400).json({ erro: 'O nome da categoria é obrigatório.' });
+  }
+
+  try {
+    const [result] = await db.promise().query(
+      'INSERT INTO categorias (nome, descricao, ativo, data_criacao) VALUES (?, ?, ?, NOW())',
+      [nome, descricao || '', ativo ? 1 : 0]
+    );
+    res.json({ success: true, id: result.insertId });
+  } catch (error) {
+    console.error('Erro ao adicionar categoria:', error);
+    res.status(500).json({ erro: 'Erro ao adicionar categoria.' });
+  }
+});
+
+
+// Rota para listar todas as categorias (ativas e inativas)
+app.get('/api/categorias/todas', async (req, res) => {
+  try {
+    const [result] = await db.promise().query('SELECT * FROM categorias');
+    res.json(result);
+  } catch (error) {
+    console.error('Erro ao buscar todas as categorias:', error);
+    res.status(500).json({ erro: 'Erro ao buscar categorias.' });
+  }
+});
+
+
+// Atualizar categoria existente
+app.put('/api/categorias/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nome, descricao, ativo } = req.body;
+
+  try {
+    const [result] = await db.promise().query(
+      'UPDATE categorias SET nome = ?, descricao = ?, ativo = ? WHERE id_categoria = ?',
+      [nome, descricao || '', ativo ? 1 : 0, id]
+    );
+    res.json({ success: true, mensagem: 'Categoria atualizada com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao atualizar categoria:', error);
+    res.status(500).json({ erro: 'Erro ao atualizar categoria.' });
+  }
+});
+
+// Deletar categoria
+app.delete('/api/categorias/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await db.promise().query('DELETE FROM categorias WHERE id_categoria = ?', [id]);
+    res.json({ success: true, mensagem: 'Categoria deletada com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao deletar categoria:', error);
+    res.status(500).json({ erro: 'Erro ao deletar categoria.' });
+  }
+});
+
+
 const ip = '0.0.0.0'; // Permite conexões externas
 
 app.listen(port, '0.0.0.0', () => {

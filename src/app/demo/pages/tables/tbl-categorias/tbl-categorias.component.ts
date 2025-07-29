@@ -1,14 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { ToastrService } from 'ngx-toastr';
-import { HttpClient } from '@angular/common/http';
-
-interface Categoria {
-  id_categoria?: number;
-  nome: string;
-  descricao?: string;
-  ativo?: boolean;
-  data_criacao?: string;
-}
+import { Categoria } from 'src/app/interfaces/categoria.interface';
+import { CategoriaService } from 'src/app/services/categoria.service';
 
 @Component({
   selector: 'app-tbl-categorias',
@@ -16,66 +8,63 @@ interface Categoria {
   styleUrls: ['./tbl-categorias.component.scss']
 })
 export class TblCategoriasComponent implements OnInit {
+
   categorias: Categoria[] = [];
-  novaCategoria: Categoria = { nome: '', descricao: '', ativo: true };
-  categoriaEmEdicao: Categoria | null = null;
+  categoriaSelecionada: Categoria | null = null;
+  mostrarModalCategoria: boolean = false;
 
-  apiUrl = 'http://localhost:5000/api/categorias';
-
-  constructor(private http: HttpClient, private toastr: ToastrService) {}
+  constructor(private categoriaService: CategoriaService) {}
 
   ngOnInit(): void {
-    this.listarCategorias();
+    this.carregarCategorias();
   }
 
-  listarCategorias(): void {
-    this.http.get<Categoria[]>(this.apiUrl).subscribe({
-      next: (res) => (this.categorias = res),
-      error: () => this.toastr.error('Erro ao carregar categorias.')
+  carregarCategorias(): void {
+    this.categoriaService.getTodasCategorias().subscribe((res) => {
+      this.categorias = res;
     });
   }
 
-  adicionarCategoria(): void {
-    this.http.post<Categoria>(this.apiUrl, this.novaCategoria).subscribe({
-      next: () => {
-        this.toastr.success('Categoria adicionada!');
-        this.novaCategoria = { nome: '', descricao: '', ativo: true };
-        this.listarCategorias();
-      },
-      error: () => this.toastr.error('Erro ao adicionar categoria.')
-    });
+  abrirModalNovaCategoria(): void {
+    this.categoriaSelecionada = {
+      nome: '',
+      descricao: '',
+      ativo: true
+    };
+    this.mostrarModalCategoria = true;
   }
 
   editarCategoria(categoria: Categoria): void {
-    this.categoriaEmEdicao = { ...categoria };
+    this.categoriaSelecionada = { ...categoria };
+    this.mostrarModalCategoria = true;
   }
 
-  cancelarEdicao(): void {
-    this.categoriaEmEdicao = null;
+  salvarCategoria(): void {
+    if (!this.categoriaSelecionada) return;
+
+    if (this.categoriaSelecionada.id_categoria) {
+      this.categoriaService.atualizarCategoria(this.categoriaSelecionada).subscribe(() => {
+        this.fecharModalCategoria();
+        this.carregarCategorias();
+      });
+    } else {
+      this.categoriaService.adicionarCategoria(this.categoriaSelecionada).subscribe(() => {
+        this.fecharModalCategoria();
+        this.carregarCategorias();
+      });
+    }
   }
 
-  salvarEdicao(): void {
-    if (!this.categoriaEmEdicao?.id_categoria) return;
-
-    this.http.put(`${this.apiUrl}/${this.categoriaEmEdicao.id_categoria}`, this.categoriaEmEdicao).subscribe({
-      next: () => {
-        this.toastr.success('Categoria atualizada!');
-        this.categoriaEmEdicao = null;
-        this.listarCategorias();
-      },
-      error: () => this.toastr.error('Erro ao atualizar categoria.')
-    });
+  excluirCategoria(categoria: Categoria): void {
+    if (confirm('Deseja realmente excluir esta categoria?')) {
+      this.categoriaService.deletarCategoria(categoria.id_categoria!).subscribe(() => {
+        this.carregarCategorias();
+      });
+    }
   }
 
-  excluirCategoria(id: number): void {
-    if (!confirm('Deseja realmente excluir essa categoria?')) return;
-
-    this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-      next: () => {
-        this.toastr.success('Categoria excluída!');
-        this.listarCategorias();
-      },
-      error: () => this.toastr.error('Erro ao excluir categoria.')
-    });
+  fecharModalCategoria(): void {
+    this.mostrarModalCategoria = false;
+    this.categoriaSelecionada = null;
   }
 }
