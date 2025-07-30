@@ -1,0 +1,36 @@
+.checkout-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 40px 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+input.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+}
+
+
+:host {
+  display: block;
+  background: url('/assets/images/bg.jpg') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+}

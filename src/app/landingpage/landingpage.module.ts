@@ -8,6 +8,7 @@ import { LandingpageComponent } from './landingpage.component';
 import { HeaderComponent } from './header/header.component';
 import { FooterComponent } from './footer/footer.component';
 import { SobreComponent } from './sobre/sobre.component';
+import { CheckoutComponent } from './checkout/checkout.component';
 
 @NgModule({
   declarations: [
@@ -15,6 +16,7 @@ import { SobreComponent } from './sobre/sobre.component';
     SobreComponent,
     HeaderComponent,
     FooterComponent,
+    CheckoutComponent
   ],
 
   imports: [

@@ -1,0 +1,88 @@
+<app-header></app-header>
+<br>
+<br>
+<div class="checkout-container container py-4">
+  <h2 class="mb-3">Finalizar Compra</h2>
+  <p>Preencha os dados abaixo para calcular o frete e concluir o pagamento.</p>
+
+  <!-- ✅ Resumo do Carrinho -->
+  <div class="cart-summary mb-4" *ngIf="carrinho.length > 0; else carrinhoVazio">
+    <h4 class="mb-3">Itens no Carrinho</h4>
+    <ul class="list-group">
+      <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let item of carrinho">
+        <div>
+          <strong>{{ item.nome }}</strong>
+          <div class="small text-muted">Quantidade: {{ item.quantidade || 1 }}</div>
+        </div>
+        <span>R$ {{ (item.preco * (item.quantidade || 1)).toFixed(2) }}</span>
+      </li>
+    </ul>
+  </div>
+
+  <ng-template #carrinhoVazio>
+    <p>Seu carrinho está vazio.</p>
+  </ng-template>
+
+  <!-- ✅ Formulário de Dados -->
+  <form>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group mb-3">
+          <label for="nome">Nome do comprador:</label>
+          <input type="text" id="nome" class="form-control" placeholder="Seu nome completo" />
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group mb-3">
+          <label for="telefone">Telefone:</label>
+          <input type="tel" id="telefone" class="form-control" placeholder="(00) 00000-0000" />
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group mb-3">
+          <label for="email">Email:</label>
+          <input type="email" id="email" class="form-control" placeholder="seuemail@exemplo.com" />
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group mb-3">
+          <label for="cep">CEP:</label>
+          <input type="text" id="cep" class="form-control" placeholder="00000-000" />
+          <button type="button" class="btn btn-primary mt-2">Calcular Frete</button>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group mb-3">
+          <label for="endereco">Endereço:</label>
+          <input type="text" id="endereco" class="form-control" placeholder="Rua, avenida..." />
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="form-group mb-3">
+          <label for="logradouro">Logradouro:</label>
+          <input type="text" id="logradouro" class="form-control" placeholder="Número, complemento..." />
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="form-group mb-3">
+          <label for="cidade">Cidade:</label>
+          <input type="text" id="cidade" class="form-control" placeholder="Sua cidade" />
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- ✅ Total e botão de pagamento -->
+  <div class="total-summary text-end mt-4">
+    <h4>Total: R$ {{ total.toFixed(2) }}</h4>
+    <button class="btn btn-success btn-lg mt-2">Pagar com Mercado Pago</button>
+  </div>
+</div>
+
+<app-footer></app-footer>
