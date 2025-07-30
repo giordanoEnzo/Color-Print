@@ -50,8 +50,6 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-// const accessToken = 'APP_USR-6836621365203261-060316-bee68e8296fad6316e04b9657ff4dc83-2456453806' caramelo dog burguer
-
 const accessToken = 'APP_USR-6075250848382634-062113-eadc8f1b789f83bf6d218a2c84d5a5c5-2191408844'
 
 const { MercadoPagoConfig, Payment, Preference } = require('mercadopago');
@@ -483,6 +481,76 @@ app.delete('/api/categorias/:id', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao deletar categoria.' });
   }
 });
+
+// ROTAS PARA VARIAÇÕES DE PRODUTO
+
+// Listar variações de um produto
+app.get('/api/produtos/:id/variacoes', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await db.promise().query(
+      'SELECT * FROM variacoes_produto WHERE id_produto = ?',
+      [id]
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Erro ao buscar variações:', error);
+    res.status(500).json({ erro: 'Erro ao buscar variações.' });
+  }
+});
+
+// Criar variação
+app.post('/api/variacoes', async (req, res) => {
+  const { id_produto, nome_variacao, descricao_opcao, preco_adicional } = req.body;
+
+  if (!id_produto || !descricao_opcao) {
+    return res.status(400).json({ erro: 'Campos obrigatórios não preenchidos.' });
+  }
+
+  try {
+    const [result] = await db.promise().query(
+      `INSERT INTO variacoes_produto (id_produto, nome_variacao, descricao_opcao, preco_adicional)
+       VALUES (?, ?, ?, ?)`,
+      [id_produto, nome_variacao, descricao_opcao, preco_adicional || 0]
+    );
+    res.json({ success: true, id: result.insertId });
+  } catch (error) {
+    console.error('Erro ao criar variação:', error);
+    res.status(500).json({ erro: 'Erro ao criar variação.' });
+  }
+});
+
+// Atualizar variação
+app.put('/api/variacoes/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nome_variacao, descricao_opcao, preco_adicional } = req.body;
+
+  try {
+    await db.promise().query(
+      `UPDATE variacoes_produto SET nome_variacao = ?, descricao_opcao = ?, preco_adicional = ?
+       WHERE id_variacao = ?`,
+      [nome_variacao, descricao_opcao, preco_adicional, id]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Erro ao atualizar variação:', error);
+    res.status(500).json({ erro: 'Erro ao atualizar variação.' });
+  }
+});
+
+// Deletar variação
+app.delete('/api/variacoes/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await db.promise().query('DELETE FROM variacoes_produto WHERE id_variacao = ?', [id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Erro ao deletar variação:', error);
+    res.status(500).json({ erro: 'Erro ao deletar variação.' });
+  }
+});
+
 
 
 const ip = '0.0.0.0'; // Permite conexões externas

@@ -108,18 +108,17 @@
         <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
         <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
 
-        <label class="input-label">Tamanho:</label>
-        <div class="input-group">
-          <div class="button-group">
-            <button
-              *ngFor="let tamanho of tamanhos"
-              (click)="selecionarTamanho(tamanho)"
-              [ngClass]="{ 'tamanho-btn-active': tamanhoSelecionado === tamanho }"
-              class="tamanho-btn"
-            >
-              <strong>{{ tamanho.label }}</strong><br />
-              <small>{{ tamanho.preco | currency: 'BRL' }}</small>
-            </button>
+        <!-- Variações -->
+        <label class="input-label">Opções:</label>
+        <div class="dimension-inputs" *ngIf="variacoesProduto.length > 0">
+          <div
+            *ngFor="let variacao of variacoesProduto"
+            class="dimension-btn"
+            (click)="selecionarVariacao(variacao)"
+            [ngClass]="{ 'tamanho-btn-active': variacaoSelecionada?.id_variacao === variacao.id_variacao }"
+          >
+            {{ variacao.descricao_opcao }}<br />
+            <strong>+ R${{ variacao.preco_adicional.toFixed(2) }}</strong>
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { ToastrService } from 'ngx-toastr';
 import { ProdutoService } from 'src/app/services/produto.service';
 import { PixService } from 'src/app/services/pix.service';
 import { CartService } from 'src/app/services/cart.service';
-import { Router } from '@angular/router'; // importe
+import { Router } from '@angular/router';
 import { Produto } from 'src/app/services/cart.service';
 
 interface Categoria {
@@ -12,12 +12,18 @@ interface Categoria {
   produtos: Produto[];
 }
 
+interface VariacaoProduto {
+  id_variacao: number;
+  nome_variacao: string;
+  descricao_opcao: string;
+  preco_adicional: number;
+}
+
 @Component({
   selector: 'app-landingpage',
   templateUrl: './landingpage.component.html',
   styleUrls: ['./landingpage.component.scss']
 })
-
 export class LandingpageComponent implements OnInit {
   categoriasComProdutos: Categoria[] = [];
   categoriaSelecionada: Categoria | null = null;
@@ -35,15 +41,10 @@ export class LandingpageComponent implements OnInit {
   ];
   slideIndex = 0;
 
-  tamanhos = [
-    { label: '21 x 15', preco: 15 },
-    { label: '30 x 20', preco: 25 },
-    { label: '40 x 30', preco: 35 }
-  ];
-  tamanhoSelecionado = this.tamanhos[0];
-
+  variacoesProduto: VariacaoProduto[] = [];
+  variacaoSelecionada: VariacaoProduto | null = null;
   quantidade: number = 1;
-  precoCalculado: number = this.tamanhoSelecionado.preco;
+  precoCalculado: number = 0;
 
   produtoDestaque: Produto = {
     id_produto: 999,
@@ -58,12 +59,11 @@ export class LandingpageComponent implements OnInit {
     private produtoService: ProdutoService,
     private pixService: PixService,
     private cartService: CartService,
-    private router: Router // ✅ adicionado aqui
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.carregarCategoriasComProdutos();
-    this.calcularPreco();
   }
 
   avancarSlide() {
@@ -93,30 +93,36 @@ export class LandingpageComponent implements OnInit {
 
   abrirModal(produto: Produto): void {
     this.produtoSelecionado = produto;
-    this.tamanhoSelecionado = this.tamanhos[0];
     this.quantidade = 1;
-    this.calcularPreco();
+    this.variacoesProduto = [];
+    this.variacaoSelecionada = null;
+    this.carregarVariacoesProduto(produto.id_produto);
+  }
+
+  carregarVariacoesProduto(id_produto: number): void {
+
+    this.produtoService.getVariacoesPorProduto(id_produto).subscribe({
+      next: (res: VariacaoProduto[]) => {
+        this.variacoesProduto = res;
+        this.variacaoSelecionada = this.variacoesProduto[0] || null;
+        this.calcularPreco();
+      },
+      error: (err) => {
+        console.error('Erro ao carregar variações:', err);
+        this.variacoesProduto = [];
+        this.variacaoSelecionada = null;
+        this.calcularPreco();
+      }
+    });
   }
 
   fecharModal(): void {
     this.produtoSelecionado = null;
   }
 
-  selecionarTamanho(tamanho: { label: string; preco: number }): void {
-    this.tamanhoSelecionado = tamanho;
+  selecionarVariacao(variacao: VariacaoProduto): void {
+    this.variacaoSelecionada = variacao;
     this.calcularPreco();
-  }
-
-  aumentarQuantidade(): void {
-    this.quantidade++;
-    this.calcularPreco();
-  }
-
-  diminuirQuantidade(): void {
-    if (this.quantidade > 1) {
-      this.quantidade--;
-      this.calcularPreco();
-    }
   }
 
   incrementarQuantidade() {
@@ -132,21 +138,24 @@ export class LandingpageComponent implements OnInit {
   }
 
   calcularPreco(): void {
-    const precoUnitario = this.tamanhoSelecionado?.preco || 0;
-    this.precoCalculado = precoUnitario * this.quantidade;
+    const precoBase = this.produtoSelecionado?.preco || 0;
+    const adicional = this.variacaoSelecionada?.preco_adicional || 0;
+    this.precoCalculado = (precoBase + adicional) * this.quantidade;
   }
 
-  
-
   adicionarAoCarrinho(produto: Produto): void {
+    const precoTotal = (produto.preco + (this.variacaoSelecionada?.preco_adicional || 0));
+    const descricao = this.variacaoSelecionada?.descricao_opcao || 'Padrão';
+
     this.cartService.adicionarAoCarrinho(
       produto,
-      this.tamanhoSelecionado.preco,
-      this.tamanhoSelecionado.label,
-      1, // altura padrão
-      1, // largura padrão
+      precoTotal,
+      descricao,
+      1,
+      1,
       this.quantidade
     );
+
     this.toastr.success('Produto adicionado ao carrinho!');
   }
 
@@ -164,32 +173,12 @@ export class LandingpageComponent implements OnInit {
       return;
     }
 
-      // Salva o carrinho no localStorage (caso já não esteja sendo salvo)
-      localStorage.setItem('carrinho', JSON.stringify(carrinho));
-
-      // Redireciona para a página de checkout
-      this.router.navigate(['/checkout']);
-
-
-    // this.pixService.criarCheckoutPro(carrinho).subscribe({
-    //   next: (res) => {
-    //     if (res.init_point) {
-    //       window.location.href = res.init_point;
-    //     } else {
-    //       this.toastr.error('Erro ao redirecionar para o Mercado Pago');
-    //     }
-    //   },
-    //   error: (err) => {
-    //     console.error('Erro ao finalizar compra:', err);
-    //     this.toastr.error('Falha ao criar preferência');
-    //   }
-    // });
+    localStorage.setItem('carrinho', JSON.stringify(carrinho));
+    this.router.navigate(['/checkout']);
   }
 
   getImagemUrl(imagem: string): string {
-    if (!imagem) return 'assets/images/placeholder.jpg'; // fallback se não tiver imagem
+    if (!imagem) return 'assets/images/placeholder.jpg';
     return `http://192.168.99.103:5000/uploads/produtos/${imagem}`;
   }
-
-
 }

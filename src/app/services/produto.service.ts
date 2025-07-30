@@ -66,5 +66,10 @@ export class ProdutoService {
   getCategoriasComProdutos(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/categorias-com-produtos`);
   }
+
+  getVariacoesPorProduto(id_produto: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/produtos/${id_produto}/variacoes`);
+  }
+  
   
 }
