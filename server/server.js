@@ -179,6 +179,9 @@ const upload = multer({ storage: storage });
 
 // Middleware para servir arquivos estáticos da pasta 'uploads'
 app.use('/uploads/produtos', express.static(path.join(__dirname, 'uploads/produtos')));
+app.use('/uploads/imagens', express.static(path.join(__dirname, 'uploads/imagens')));
+
+
 
 
 // Rota de login

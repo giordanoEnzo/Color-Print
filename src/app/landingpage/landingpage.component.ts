@@ -3,7 +3,7 @@ import { ToastrService } from 'ngx-toastr';
 import { ProdutoService } from 'src/app/services/produto.service';
 import { PixService } from 'src/app/services/pix.service';
 import { CartService } from 'src/app/services/cart.service';
-
+import { Router } from '@angular/router'; // importe
 import { Produto } from 'src/app/services/cart.service';
 
 interface Categoria {
@@ -57,7 +57,8 @@ export class LandingpageComponent implements OnInit {
     private toastr: ToastrService,
     private produtoService: ProdutoService,
     private pixService: PixService,
-    private cartService: CartService
+    private cartService: CartService,
+    private router: Router // ✅ adicionado aqui
   ) {}
 
   ngOnInit(): void {
@@ -163,19 +164,26 @@ export class LandingpageComponent implements OnInit {
       return;
     }
 
-    this.pixService.criarCheckoutPro(carrinho).subscribe({
-      next: (res) => {
-        if (res.init_point) {
-          window.location.href = res.init_point;
-        } else {
-          this.toastr.error('Erro ao redirecionar para o Mercado Pago');
-        }
-      },
-      error: (err) => {
-        console.error('Erro ao finalizar compra:', err);
-        this.toastr.error('Falha ao criar preferência');
-      }
-    });
+      // Salva o carrinho no localStorage (caso já não esteja sendo salvo)
+      localStorage.setItem('carrinho', JSON.stringify(carrinho));
+
+      // Redireciona para a página de checkout
+      this.router.navigate(['/checkout']);
+
+
+    // this.pixService.criarCheckoutPro(carrinho).subscribe({
+    //   next: (res) => {
+    //     if (res.init_point) {
+    //       window.location.href = res.init_point;
+    //     } else {
+    //       this.toastr.error('Erro ao redirecionar para o Mercado Pago');
+    //     }
+    //   },
+    //   error: (err) => {
+    //     console.error('Erro ao finalizar compra:', err);
+    //     this.toastr.error('Falha ao criar preferência');
+    //   }
+    // });
   }
 
   getImagemUrl(imagem: string): string {

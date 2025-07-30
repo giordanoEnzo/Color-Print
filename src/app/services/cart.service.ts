@@ -26,7 +26,11 @@ export class CartService {
 
   carrinho$ = this.carrinhoSubject.asObservable();
 
-  constructor() {}
+  constructor() {
+    const carrinhoSalvo = localStorage.getItem('carrinho');
+    this.carrinho = carrinhoSalvo ? JSON.parse(carrinhoSalvo) : [];
+    this.emitir(); // já notifica os observadores com os dados carregados
+  }
 
   adicionarAoCarrinho(produto: Produto, preco: number, tamanho: string, altura: number, largura: number, quantidade = 1): void {
     const novoItem: CarrinhoItem = {
@@ -51,6 +55,7 @@ export class CartService {
         p.preco === item.preco)
     );
     this.emitir();
+    
   }
 
   limparCarrinho(): void {
@@ -71,6 +76,9 @@ export class CartService {
   }
 
   private emitir(): void {
+    localStorage.setItem('carrinho', JSON.stringify(this.carrinho));
     this.carrinhoSubject.next([...this.carrinho]);
   }
+
+  
 }

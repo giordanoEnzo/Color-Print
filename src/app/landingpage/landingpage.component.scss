@@ -34,22 +34,23 @@ $transition: all 0.3s ease;
   }
 }
 
-/* Estilos globais */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: $text-color;
-  margin: 0;
-  line-height: 1.6;
+  background-image: url('/assets/images/bg.jpg');
+  background-repeat: repeat-y;
+  background-size: cover; // ou '100% auto' se a imagem estiver esticando demais
+  background-position: top center;
+  background-attachment: scroll;
 }
-
 
 .landingpage-wrapper {
   background: url('/assets/images/bg.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  min-height: 20vh;
+  background-attachment: fixed; // opcional para efeito "parallax"
+  min-height: 100vh; // Troque 20vh por 100vh
 }
+
 
 .promo-bar {
   overflow: hidden;

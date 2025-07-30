@@ -70,6 +70,11 @@ const routes: Routes = [
         path: 'sobre',
         loadComponent: () => import('./landingpage/sobre/sobre.component').then(m => m.SobreComponent)
       },
+      {
+        path: 'checkout',
+        loadComponent: () => import('./landingpage/checkout/checkout.component').then(m => m.CheckoutComponent)
+      },
+      
       
     ]
   }

@@ -25,6 +25,7 @@ export class HeaderComponent {
 
   removerDoCarrinho(item: CarrinhoItem): void {
     this.cartService.removerDoCarrinho(item);
+      window.location.reload(); // ⚠️ Grosseiro, mas funcional
   }
 
   get totalCarrinho(): number {
