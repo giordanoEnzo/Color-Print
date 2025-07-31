@@ -19,6 +19,7 @@ interface VariacaoProduto {
   descricao_opcao: string;
   preco_adicional: number;
 }
+// ... [importações e interfaces inalteradas]
 
 @Component({
   selector: 'app-landingpage',
@@ -115,14 +116,34 @@ export class LandingpageComponent implements OnInit {
   carregarVariacoesProduto(id_produto: number): void {
     this.produtoService.getVariacoesPorProduto(id_produto).subscribe({
       next: (res: VariacaoProduto[]) => {
-        this.variacoesProduto = res;
-        this.variacaoSelecionada = null;
+        const variacoes = [
+          {
+            id_variacao: 0,
+            nome_variacao: 'Padrão',
+            descricao_opcao: 'Padrão',
+            preco_adicional: this.produtoSelecionado?.preco || 0
+          },
+          ...res
+        ];
+
+        this.variacoesProduto = variacoes;
+        this.variacaoSelecionada = variacoes[0]; // "Padrão" por padrão
         this.calcularPreco();
       },
       error: (err) => {
         console.error('Erro ao carregar variações:', err);
-        this.variacoesProduto = [];
-        this.variacaoSelecionada = null;
+
+        const variacoes = [
+          {
+            id_variacao: 0,
+            nome_variacao: 'Padrão',
+            descricao_opcao: 'Padrão',
+            preco_adicional: this.produtoSelecionado?.preco || 0
+          }
+        ];
+
+        this.variacoesProduto = variacoes;
+        this.variacaoSelecionada = variacoes[0];
         this.calcularPreco();
       }
     });
@@ -151,20 +172,12 @@ export class LandingpageComponent implements OnInit {
   }
 
   calcularPreco(): void {
-    if (this.variacaoSelecionada) {
-      this.precoCalculado = this.variacaoSelecionada.preco_adicional * this.quantidade;
-    } else {
-      const precoBase = this.produtoSelecionado?.preco || 0;
-      this.precoCalculado = precoBase * this.quantidade;
-    }
+    const precoUnitario = this.variacaoSelecionada?.preco_adicional || 0;
+    this.precoCalculado = precoUnitario * this.quantidade;
   }
 
-
   adicionarAoCarrinho(produto: Produto): void {
-    const precoUnitario = this.variacaoSelecionada
-      ? this.variacaoSelecionada.preco_adicional
-      : produto.preco;
-
+    const precoUnitario = this.variacaoSelecionada?.preco_adicional || produto.preco;
     const descricao = this.variacaoSelecionada?.descricao_opcao || 'Padrão';
 
     this.cartService.adicionarAoCarrinho(
@@ -178,7 +191,6 @@ export class LandingpageComponent implements OnInit {
 
     this.toastr.success('Produto adicionado ao carrinho!');
   }
-
 
   adicionarSelecionadoAoCarrinho(): void {
     if (!this.produtoSelecionado) return;

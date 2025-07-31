@@ -112,14 +112,20 @@
             *ngFor="let variacao of variacoesProduto"
             class="dimension-btn"
             (click)="selecionarVariacao(variacao)"
-            [ngClass]="{ 'tamanho-btn-active': variacaoSelecionada?.id_variacao === variacao.id_variacao }"
+            [ngClass]="{
+              'tamanho-btn-active': variacaoSelecionada?.id_variacao === variacao.id_variacao,
+              'Padrão-opcao': variacao.descricao_opcao === 'Padrão'
+            }"
           >
             {{ variacao.descricao_opcao }}
             <br />
-            <strong>+ R{{ variacao.preco_adicional | number:'1.2-2' }}</strong>
+            <ng-container *ngIf="variacao.descricao_opcao !== 'Padrão'">
+              <strong>+ R{{ variacao.preco_adicional | number:'1.2-2' }}</strong>
+            </ng-container>
           </div>
         </div>
       </div>
+
 
       <!-- QUANTIDADE -->
       <div class="quantidade-control">
