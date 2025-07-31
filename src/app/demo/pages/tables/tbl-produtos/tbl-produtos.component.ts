@@ -25,7 +25,7 @@ export class TblProdutosComponent implements OnInit {
     destaque: false,
   };
 
-  produtoEmEdicao: Produto | null = null;
+  produtoEmEdicao: any = null;
   imagemEditada: File | null = null;
 
   mostrarFormulario = false;
@@ -173,9 +173,32 @@ export class TblProdutosComponent implements OnInit {
   editarProduto(produto: any): void {
     this.produtoEmEdicao = {
       ...produto,
-      id_produto: produto.id // 👈 mapeia o campo certo
+      id_produto: produto.id,
+      variacoes: []
     };
+
+    this.produtoService.getVariacoesPorProduto(produto.id).subscribe({
+      next: (res) => {
+        this.produtoEmEdicao.variacoes = res;
+      },
+      error: () => {
+        this.produtoEmEdicao.variacoes = [];
+      }
+    });
+
     this.imagemEditada = null;
+  }
+
+  adicionarVariacao(): void {
+    if (this.produtoEmEdicao) {
+      this.produtoEmEdicao.variacoes.push({ descricao_opcao: '', preco_adicional: 0 });
+    }
+  }
+
+  removerVariacao(index: number): void {
+    if (this.produtoEmEdicao) {
+      this.produtoEmEdicao.variacoes.splice(index, 1);
+    }
   }
 
   salvarEdicao(): void {
@@ -188,7 +211,8 @@ export class TblProdutosComponent implements OnInit {
       preco,
       estoque,
       destaque,
-      id_categoria
+      id_categoria,
+      variacoes
     } = this.produtoEmEdicao;
 
     if (!nome || preco == null || estoque == null || id_categoria == null) {
@@ -210,6 +234,15 @@ export class TblProdutosComponent implements OnInit {
 
     this.produtoService.updateProduto(id_produto.toString(), formData).subscribe({
       next: () => {
+        // Salva ou atualiza variações
+        variacoes.forEach(variacao => {
+          if (variacao.id_variacao) {
+            this.produtoService.updateVariacao(variacao.id_variacao, variacao).subscribe();
+          } else {
+            this.produtoService.addVariacao({ ...variacao, id_produto }).subscribe();
+          }
+        });
+
         this.toastr.success('Produto atualizado com sucesso!', 'Sucesso');
         this.carregarProdutos();
         this.produtoEmEdicao = null;

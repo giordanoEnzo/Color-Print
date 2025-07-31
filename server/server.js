@@ -492,6 +492,9 @@ app.get('/api/produtos/:id/variacoes', async (req, res) => {
       'SELECT * FROM variacoes_produto WHERE id_produto = ?',
       [id]
     );
+
+    console.log([rows],'Alguma merda vinda do backend')
+    console.log([id],'ID DO PRODUTO NO BACKEND')
     res.json(rows);
   } catch (error) {
     console.error('Erro ao buscar variações:', error);

@@ -16,11 +16,7 @@
   <!-- BANNER -->
   <section class="banner fade-in">
     <div class="carousel">
-      <div 
-        class="carousel-slide" 
-        *ngFor="let slide of slides; let i = index" 
-        [ngClass]="{ 'active': i === slideIndex }"
-      >
+      <div class="carousel-slide" *ngFor="let slide of slides; let i = index" [ngClass]="{ 'active': i === slideIndex }">
         <img [src]="slide.imagem" [alt]="slide.alt" class="banner-bg" />
       </div>
 
@@ -90,56 +86,60 @@
     </section>
   </div>
 
-  <!-- MODAL DE PRODUTO -->
-  <div class="modal-backdrop" (click)="fecharModal()" *ngIf="produtoSelecionado"></div>
+<!-- MODAL DE PRODUTO -->
+<div class="modal-backdrop" (click)="fecharModal()" *ngIf="produtoSelecionado"></div>
 
-  <div class="product-modal" *ngIf="produtoSelecionado">
-    <button class="close-btn" (click)="fecharModal()">✖</button>
+<div class="product-modal" *ngIf="produtoSelecionado">
+  <button class="close-btn" (click)="fecharModal()">✖</button>
 
-    <div class="modal-content">
-      <!-- LADO ESQUERDO: IMAGEM -->
-      <div class="modal-left">
-        <img [src]="getImagemUrl(produtoSelecionado.imagem)" [alt]="produtoSelecionado.nome" class="modal-img" />
-      </div>
+  <div class="modal-content">
+    <!-- LADO ESQUERDO: IMAGEM -->
+    <div class="modal-left">
+      <img [src]="getImagemUrl(produtoSelecionado.imagem)" [alt]="produtoSelecionado.nome" class="modal-img" />
+    </div>
 
-      <!-- LADO DIREITO: INFO -->
-      <div class="modal-right">
-        <br /><br />
-        <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
-        <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
+    <!-- LADO DIREITO: INFO -->
+    <div class="modal-right">
+      <br /><br />
+      <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
+      <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
 
-        <!-- Variações -->
+      <!-- Variações (botões) -->
+      <div *ngIf="variacoesProduto.length > 0">
         <label class="input-label">Opções:</label>
-        <div class="dimension-inputs" *ngIf="variacoesProduto.length > 0">
+        <div class="dimension-inputs">
           <div
             *ngFor="let variacao of variacoesProduto"
             class="dimension-btn"
             (click)="selecionarVariacao(variacao)"
             [ngClass]="{ 'tamanho-btn-active': variacaoSelecionada?.id_variacao === variacao.id_variacao }"
           >
-            {{ variacao.descricao_opcao }}<br />
-            <strong>+ R${{ variacao.preco_adicional.toFixed(2) }}</strong>
+            {{ variacao.descricao_opcao }}
+            <br />
+            <strong>+ R{{ variacao.preco_adicional | number:'1.2-2' }}</strong>
           </div>
         </div>
-
-        <!-- QUANTIDADE -->
-        <div class="quantidade-control">
-          <label>Quantidade:</label>
-          <div class="contador">
-            <button (click)="decrementarQuantidade()" class="btn-menor">−</button>
-            <span class="quantidade">{{ quantidade }}</span>
-            <button (click)="incrementarQuantidade()" class="btn-maior">+</button>
-          </div>
-        </div>
-
-        <p class="preco-calculado">
-          TOTAL: {{ precoCalculado | currency:'BRL' }}
-        </p>
-
-        <button class="adicionar-btn" (click)="adicionarSelecionadoAoCarrinho()">
-          Adicionar ao carrinho
-        </button>
       </div>
+
+      <!-- QUANTIDADE -->
+      <div class="quantidade-control">
+        <label>Quantidade:</label>
+        <div class="contador">
+          <button (click)="decrementarQuantidade()" class="btn-menor">−</button>
+          <span class="quantidade">{{ quantidade }}</span>
+          <button (click)="incrementarQuantidade()" class="btn-maior">+</button>
+        </div>
+      </div>
+
+      <!-- PREÇO CALCULADO -->
+      <p class="preco-calculado">
+        TOTAL: {{ precoCalculado | currency:'BRL' }}
+      </p>
+
+      <!-- BOTÃO ADICIONAR -->
+      <button class="adicionar-btn" (click)="adicionarSelecionadoAoCarrinho()">
+        Adicionar ao carrinho
+      </button>
     </div>
   </div>
 </div>

@@ -67,9 +67,32 @@ export class ProdutoService {
     return this.http.get<any[]>(`${this.apiUrl}/categorias-com-produtos`);
   }
 
-  getVariacoesPorProduto(id_produto: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/produtos/${id_produto}/variacoes`);
-  }
+  // CRUD de variações de produtos
+
+// Criar variação
+addVariacao(variacao: any): Observable<any> {
+  return this.http.post(`${this.apiUrl}/variacoes`, variacao);
+}
+
+// Buscar todas as variações (geral)
+getTodasVariacoes(): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/variacoes`);
+}
+
+// Buscar variações por produto (você já tem esse)
+getVariacoesPorProduto(id_produto: number): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/produtos/${id_produto}/variacoes`);
+}
+
+// Atualizar variação
+updateVariacao(id_variacao: number, variacao: any): Observable<any> {
+  return this.http.put(`${this.apiUrl}/variacoes/${id_variacao}`, variacao);
+}
+
+// Deletar variação
+deleteVariacao(id_variacao: number): Observable<any> {
+  return this.http.delete(`${this.apiUrl}/variacoes/${id_variacao}`);
+}
   
   
 }

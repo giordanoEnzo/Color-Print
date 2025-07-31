@@ -5,6 +5,7 @@ import { PixService } from 'src/app/services/pix.service';
 import { CartService } from 'src/app/services/cart.service';
 import { Router } from '@angular/router';
 import { Produto } from 'src/app/services/cart.service';
+import { ChangeDetectorRef } from '@angular/core';
 
 interface Categoria {
   id_categoria: number;
@@ -51,7 +52,7 @@ export class LandingpageComponent implements OnInit {
     nome: 'Placas adesivas proibido estacionar 2x2 100 Unidades',
     preco: 35.0,
     imagem: 'assets/images/produtos/SC001.jpg',
-    descricao: 'Adesivo para Placa de Transito 50x50cm A-18 Saliencia Lombada Placa de sinalização vertical, utilizada para vias urbanas e/ou identificação de condomínios, loteamentos etc...Características:• Placa de Regulamentação;• Formato: Octogonal / Circular / Quadrado;• Fundo: Película Refletiva;• Orla: Película Refletiva (Exceto placas de advertência);• Algarismo/Letra/Símbolo: Preto;'
+    descricao: 'Adesivo para Placa de Transito 50x50cm A-18 Saliencia Lombada...'
   };
 
   constructor(
@@ -59,7 +60,8 @@ export class LandingpageComponent implements OnInit {
     private produtoService: ProdutoService,
     private pixService: PixService,
     private cartService: CartService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -92,19 +94,29 @@ export class LandingpageComponent implements OnInit {
   }
 
   abrirModal(produto: Produto): void {
-    this.produtoSelecionado = produto;
+    const idProduto = produto.id_produto || (produto as any).id;
+    if (!idProduto) {
+      console.error('ID do produto não encontrado:', produto);
+      return;
+    }
+
+    this.produtoSelecionado = {
+      ...produto,
+      id_produto: idProduto
+    };
+
     this.quantidade = 1;
     this.variacoesProduto = [];
     this.variacaoSelecionada = null;
-    this.carregarVariacoesProduto(produto.id_produto);
+
+    this.carregarVariacoesProduto(idProduto);
   }
 
   carregarVariacoesProduto(id_produto: number): void {
-
     this.produtoService.getVariacoesPorProduto(id_produto).subscribe({
       next: (res: VariacaoProduto[]) => {
         this.variacoesProduto = res;
-        this.variacaoSelecionada = this.variacoesProduto[0] || null;
+        this.variacaoSelecionada = null;
         this.calcularPreco();
       },
       error: (err) => {
@@ -123,6 +135,7 @@ export class LandingpageComponent implements OnInit {
   selecionarVariacao(variacao: VariacaoProduto): void {
     this.variacaoSelecionada = variacao;
     this.calcularPreco();
+    this.cdr.detectChanges();
   }
 
   incrementarQuantidade() {
@@ -138,18 +151,25 @@ export class LandingpageComponent implements OnInit {
   }
 
   calcularPreco(): void {
-    const precoBase = this.produtoSelecionado?.preco || 0;
-    const adicional = this.variacaoSelecionada?.preco_adicional || 0;
-    this.precoCalculado = (precoBase + adicional) * this.quantidade;
+    if (this.variacaoSelecionada) {
+      this.precoCalculado = this.variacaoSelecionada.preco_adicional * this.quantidade;
+    } else {
+      const precoBase = this.produtoSelecionado?.preco || 0;
+      this.precoCalculado = precoBase * this.quantidade;
+    }
   }
 
+
   adicionarAoCarrinho(produto: Produto): void {
-    const precoTotal = (produto.preco + (this.variacaoSelecionada?.preco_adicional || 0));
+    const precoUnitario = this.variacaoSelecionada
+      ? this.variacaoSelecionada.preco_adicional
+      : produto.preco;
+
     const descricao = this.variacaoSelecionada?.descricao_opcao || 'Padrão';
 
     this.cartService.adicionarAoCarrinho(
       produto,
-      precoTotal,
+      precoUnitario,
       descricao,
       1,
       1,
@@ -158,6 +178,7 @@ export class LandingpageComponent implements OnInit {
 
     this.toastr.success('Produto adicionado ao carrinho!');
   }
+
 
   adicionarSelecionadoAoCarrinho(): void {
     if (!this.produtoSelecionado) return;
