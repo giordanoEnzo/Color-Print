@@ -554,8 +554,6 @@ app.delete('/api/variacoes/:id', async (req, res) => {
   }
 });
 
-
-
 const ip = '0.0.0.0'; // Permite conexões externas
 
 app.listen(port, '0.0.0.0', () => {

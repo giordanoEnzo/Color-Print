@@ -12,14 +12,13 @@
 
 <div class="landingpage-wrapper">
   <app-header (checkoutClicked)="finalizarCompra()"></app-header>
-
   <!-- BANNER -->
   <section class="banner fade-in">
     <div class="carousel">
       <div class="carousel-slide" *ngFor="let slide of slides; let i = index" [ngClass]="{ 'active': i === slideIndex }">
         <img [src]="slide.imagem" [alt]="slide.alt" class="banner-bg" />
       </div>
-
+      
       <!-- Destaque fixo -->
       <div class="highlight-card">
         <img [src]="getImagemUrl(produtoDestaque.imagem)" alt="Produto em destaque" />

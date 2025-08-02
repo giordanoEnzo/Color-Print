@@ -197,7 +197,20 @@ export class TblProdutosComponent implements OnInit {
 
   removerVariacao(index: number): void {
     if (this.produtoEmEdicao) {
-      this.produtoEmEdicao.variacoes.splice(index, 1);
+      const variacao = this.produtoEmEdicao.variacoes[index];
+      if (variacao.id_variacao) {
+        this.produtoService.deleteVariacao(variacao.id_variacao).subscribe({
+          next: () => {
+            this.produtoEmEdicao.variacoes.splice(index, 1);
+            this.toastr.success('Variação excluída com sucesso!', 'Sucesso');
+          },
+          error: () => {
+            this.toastr.error('Erro ao excluir variação', 'Erro');
+          }
+        });
+      } else {
+        this.produtoEmEdicao.variacoes.splice(index, 1);
+      }
     }
   }
 
@@ -234,7 +247,6 @@ export class TblProdutosComponent implements OnInit {
 
     this.produtoService.updateProduto(id_produto.toString(), formData).subscribe({
       next: () => {
-        // Salva ou atualiza variações
         variacoes.forEach(variacao => {
           if (variacao.id_variacao) {
             this.produtoService.updateVariacao(variacao.id_variacao, variacao).subscribe();
