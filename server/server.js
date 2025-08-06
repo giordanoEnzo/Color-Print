@@ -10,10 +10,14 @@ const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
 
+const axios = require('axios');
+
 const app = express();
 const port = process.env.PORT || 2000;
 
 const allowedOrigins = ['http://localhost:4200', 'http://192.168.99.100:5000/api'];
+
+const MELHOR_ENVIO_TOKEN = process.env.MELHOR_ENVIO_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiOTRkMGY5MDg3YWI3YzMzOGRhOWFkMWI4NWJlMTAzZmI3ZDFjNDg0Y2RhZjg0YjZkMmEyOGJkZDU4NzE5Y2IwNTZkZGNjODE5ZGUwNTIwZjciLCJpYXQiOjE3NTQ0MTg4MDcuNzk0OTQsIm5iZiI6MTc1NDQxODgwNy43OTQ5NDEsImV4cCI6MTc4NTk1NDgwNy43ODE2MjUsInN1YiI6IjlmOGQ1NDg3LWY5YTMtNDRjYy04ZTliLWY1Y2NiMzZkZjczYSIsInNjb3BlcyI6WyJzaGlwcGluZy1jYWxjdWxhdGUiXX0.oFa_S29Kj7A_7rYP-D-aafPLtRFxkts3OIicWq3DNdpF-HutZfDIO9SHowEx0mOLDTW4Xv8azRH24zlGaSbmKNJeXChp33OW-snld8KMA_L93DySPsHN66TbxyeBKgubxdB82QZNSQv5_tDIcdJFVx7jmuZVjr3ZfZbW-YZK5nB67QNBNU8JAvV2N-PaAKd4Uqr9H8401sl0CrIhShQuabsFb2orkyFXNid39FxEbtGJUrXlWfnGzOFDCQGjBDJRNH2QEmZBKeRF6tS6Uvofz1-0urNkxoH1H1PsVOiGh2W1ihMHjL7WORvEZjKK0E8ZXJZWOlFFEqTmWmcj7DUWx1jTA99rS_lGsTDHD2ZDNHIXvX-LSiabEp280PXbah_PVlUx2WtZq1oCKWjTR3ZpRWtgggNubneB9vBoyfGsekk2Hx_Gx6OcDZEHnzj3C7e5E7N0MlcjPeIzbNFjjpKAfjJnpKvPz4okn4ILKCR_z8cVxs-vWEoG29ao0JmlTwmRCzPoPpu9_N2iGBaX-WkDPukzJqW0340Ai4YtcIuX4s_CBrnKgGphU0ynSPyn4h94sXBlcL3DwPWTeekIIfTnAEKfhvvGX8QjMFKM4b9qO2FX0TzKtFll4-_oHUbKFuUzALPkjQL8-myA75up7Zppo_FjEW9uJkkvdTzmcW24R-U';
 
 const corsOptions = {
   origin: function(origin, callback) {
@@ -54,6 +58,8 @@ const accessToken = 'APP_USR-6075250848382634-062113-eadc8f1b789f83bf6d218a2c84d
 
 const { MercadoPagoConfig, Payment, Preference } = require('mercadopago');
 
+const { calcularPrecoPrazo } = require('correios-brasil');
+
 const client = new MercadoPagoConfig({
     accessToken: accessToken,
     options: {
@@ -61,10 +67,69 @@ const client = new MercadoPagoConfig({
     }
 });
 
-app.post('/api/checkout', async (req, res) => {
-  const items = req.body.items;
+app.post('/api/frete', (req, res) => {
+  const { cepDestino, peso } = req.body;
 
-  console.log('Itens recebidos no checkout:', items); // 👈 Verifique se está correto
+  // Normalização do CEP (pega só números)
+  const cep = (cepDestino || '').replace(/\D/g, '');
+
+  // Regras de frete mock (simples por região)
+  let fretes = [
+    {
+      id: '1',
+      name: 'SEDEX',
+      price: '27.50',
+      delivery_time: { days: 2, working_days: true, estimated_date: '2025-08-09' },
+      company: { name: 'Correios' },
+      error: ''
+    },
+    {
+      id: '2',
+      name: 'PAC',
+      price: '18.90',
+      delivery_time: { days: 5, working_days: true, estimated_date: '2025-08-12' },
+      company: { name: 'Correios' },
+      error: ''
+    }
+  ];
+
+  // Exemplo de ajuste simples por região
+  if (cep.startsWith('1')) { // Sudeste (ex: SP)
+    fretes[0].price = '21.00';
+    fretes[0].delivery_time.days = 3;
+    fretes[1].price = '15.00';
+    fretes[1].delivery_time.days = 4;
+  }
+  if (cep.startsWith('7')) { // Norte
+    fretes[0].price = '38.00';
+    fretes[0].delivery_time.days = 5;
+    fretes[1].price = '29.00';
+    fretes[1].delivery_time.days = 8;
+  }
+  // Se quiser, adicione mais regras para outros estados
+
+  // Pode simular ajuste pelo peso também, se quiser
+  // if (peso && peso > 5) { ... }
+
+  // Envia sempre no padrão esperado pelo seu front!
+  res.json(fretes);
+});
+
+
+
+app.post('/api/checkout', async (req, res) => {
+  const items = req.body.items || [];
+  const frete = req.body.frete; // Vem do front
+
+  // Adiciona o frete como item extra se existir
+  if (frete && frete.price) {
+    items.push({
+      title: 'Frete',
+      quantity: 1,
+      currency_id: "BRL",
+      unit_price: Number(frete.price.replace(',', '.'))
+    });
+  }
 
   try {
     const preference = new Preference(client);
@@ -72,10 +137,12 @@ app.post('/api/checkout', async (req, res) => {
     const result = await preference.create({
       body: {
         items: items.map(item => ({
-          title: `${item.nome} (${item.tamanho})`,
-          quantity: 1,
+          title: item.nome 
+            ? `${item.nome}${item.tamanho ? ' (' + item.tamanho + ')' : ''}` 
+            : item.title, // Caso seja o item de frete
+          quantity: item.quantidade || item.quantity || 1,
           currency_id: "BRL",
-          unit_price: Number(item.preco)
+          unit_price: Number(item.preco || item.unit_price)
         })),
         back_urls: {
           success: 'https://www.google.com/webhp?hl=pt-BR&sa=X&ved=0ahUKEwjWicSi38X2AhUtq5UCHfVhAuAQPAgI',
@@ -89,10 +156,11 @@ app.post('/api/checkout', async (req, res) => {
     return res.json({ init_point: result.init_point });
 
   } catch (error) {
-    console.error('Erro ao criar preferência:', error); // 👈 aqui veremos o erro real
+    console.error('Erro ao criar preferência:', error);
     return res.status(500).json({ error: 'Erro ao criar preferência de pagamento.' });
   }
 });
+
 
 
 
@@ -159,7 +227,6 @@ app.get('/api/pix/status/:id', async (req, res) => {
   }
 
 });
-
 
 // Configuração do multer para o upload de imagens
 const storage = multer.diskStorage({
@@ -557,5 +624,5 @@ app.delete('/api/variacoes/:id', async (req, res) => {
 const ip = '0.0.0.0'; // Permite conexões externas
 
 app.listen(port, '0.0.0.0', () => {
-  console.log(`Servidor rodando em http://192.168.99.105:${port}`);
+  console.log('Servidor rodando');
 });

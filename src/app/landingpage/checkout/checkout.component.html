@@ -47,14 +47,62 @@
       </div>
 
       <div class="col-md-6 mt-3">
-        <label for="cep" class="form-label">CEP:</label>
-        <input type="text" id="cep" class="form-control" placeholder="00000-000" />
-        <button type="button" class="btn btn-outline-primary btn-sm mt-2">Calcular Frete</button>
-      </div>
-
-      <div class="col-md-6 mt-3">
         <label for="endereco" class="form-label">Endereço:</label>
         <input type="text" id="endereco" class="form-control" placeholder="Rua, avenida..." />
+      </div>
+
+
+      <div class="col-md-6 mt-3">
+        <label for="cep" class="form-label">CEP:</label>
+        <input
+          type="text"
+          id="cep"
+          class="form-control"
+          [(ngModel)]="cepDestino"
+          name="cepDestino"
+          placeholder="00000-000"
+        />
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-sm mt-2"
+          (click)="calcularFrete()"
+        >
+          Calcular Frete
+        </button>
+
+        <!-- Feedback de carregamento -->
+        <div class="mt-2" *ngIf="carregandoFrete">Calculando frete...</div>
+        <div class="text-danger mt-2" *ngIf="freteErro">{{ freteErro }}</div>
+
+        <!-- Exibição de opções de frete -->
+        <div class="mt-3" *ngIf="fretes.length > 0">
+          <label class="form-label">Opções de Frete:</label>
+          <ul class="list-group">
+            <li class="list-group-item" *ngFor="let frete of fretes">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{{ frete.name }}</strong><br />
+                  <small>
+                    Prazo: {{ frete.delivery_time?.days }} dia(s) |
+                    Valor: <b>R$ {{ frete.price }}</b>
+                  </small><br />
+                  <small class="text-muted">Transportadora: {{ frete.company?.name }}</small>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-sm"
+                  [ngClass]="freteSelecionado === frete ? 'btn-success' : 'btn-outline-success'"
+                  (click)="selecionarFrete(frete)"
+                >
+                  {{ freteSelecionado === frete ? 'Selecionado' : 'Selecionar' }}
+                </button>
+              </div>
+              <div class="text-danger mt-1" *ngIf="frete.error">
+                {{ frete.error }}
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
 
       <div class="col-md-3 mt-3">
@@ -71,8 +119,17 @@
 
   <!-- ✅ Total e Pagamento -->
   <div class="total-summary text-end">
-    <h4 class="mb-3">Total: <span class="text-success">R$ {{ total.toFixed(2) }}</span></h4>
-    <button class="btn btn-success btn-lg">Pagar com Mercado Pago</button>
+    <h4 class="mb-3">
+      Total:
+      <span class="text-success">
+        R$ {{ obterTotalComFrete() }}
+      </span>
+    </h4>
+
+  <button class="btn btn-success btn-lg" [disabled]="!freteSelecionado || carregandoFrete || carrinho.length === 0" (click)="finalizarCompra()">
+    Pagar com Mercado Pago
+  </button>
+  
   </div>
 </div>
 
