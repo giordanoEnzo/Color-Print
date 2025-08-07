@@ -88,7 +88,7 @@ export class CheckoutComponent implements OnInit {
     return nome;
   }
 
-  finalizarCompra(): void {
+ finalizarCompra(): void {
     if (!this.freteSelecionado || this.carrinho.length === 0) {
       this.toastr.error('Selecione o frete para continuar.');
       return;
@@ -96,7 +96,15 @@ export class CheckoutComponent implements OnInit {
 
     this.carregandoPagamento = true;
 
+    // Pegue os dados dos inputs do form (use [(ngModel)] ou FormGroup)
     const pedido = {
+      nome: (document.getElementById('nome') as HTMLInputElement).value,
+      email: (document.getElementById('email') as HTMLInputElement).value,
+      telefone: (document.getElementById('telefone') as HTMLInputElement).value,
+      endereco: (document.getElementById('endereco') as HTMLInputElement).value,
+      cep: this.cepDestino,
+      logradouro: (document.getElementById('logradouro') as HTMLInputElement).value,
+      cidade: (document.getElementById('cidade') as HTMLInputElement).value,
       items: this.carrinho.map(item => ({
         nome: item.nome,
         tamanho: item.tamanho,
@@ -104,25 +112,35 @@ export class CheckoutComponent implements OnInit {
         quantidade: item.quantidade || 1,
       })),
       frete: this.freteSelecionado,
-      cepDestino: this.cepDestino,
       total: this.obterTotalComFrete()
     };
 
-    this.http.post<{ init_point: string }>(`${environment.apiUrl}/checkout`, pedido)
+    // 1º Salva a venda no banco
+    this.http.post(`${environment.apiUrl}/vendas`, pedido)
       .subscribe({
-        next: (res) => {
-          this.carregandoPagamento = false;
-          if (res.init_point) {
-            window.location.href = res.init_point;
-          } else {
-            this.toastr.error('Erro ao gerar link de pagamento.');
-          }
+        next: (res: any) => {
+          // 2º Gera o link de pagamento normalmente
+          this.http.post<{ init_point: string }>(`${environment.apiUrl}/checkout`, pedido)
+            .subscribe({
+              next: (res) => {
+                this.carregandoPagamento = false;
+                if (res.init_point) {
+                  window.location.href = res.init_point;
+                } else {
+                  this.toastr.error('Erro ao gerar link de pagamento.');
+                }
+              },
+              error: (err) => {
+                this.carregandoPagamento = false;
+                this.toastr.error('Erro ao finalizar compra.');
+              }
+            });
         },
         error: (err) => {
           this.carregandoPagamento = false;
-          console.error('Erro ao finalizar compra:', err);
-          this.toastr.error('Erro ao finalizar compra.');
+          this.toastr.error('Erro ao registrar pedido.');
         }
       });
   }
+
 }

@@ -621,6 +621,74 @@ app.delete('/api/variacoes/:id', async (req, res) => {
   }
 });
 
+
+app.post('/api/vendas', async (req, res) => {
+  const {
+    nome, email, telefone, endereco, cep, logradouro, cidade,
+    items, frete, total
+  } = req.body;
+
+  try {
+    const [result] = await db.promise().query(
+      `INSERT INTO vendas
+        (nome_cliente, email_cliente, telefone_cliente, endereco_cliente, cep_cliente, logradouro, cidade, itens_pedido, frete_nome, frete_valor, status_pedido)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        nome,
+        email,
+        telefone,
+        endereco,
+        cep,
+        logradouro,
+        cidade,
+        JSON.stringify(items),
+        frete?.name || null,
+        frete?.price ? parseFloat(frete.price.replace(',', '.')) : null,
+        'PENDENTE'
+      ]
+    );
+    res.json({ success: true, id_pedido: result.insertId });
+  } catch (err) {
+    console.error('Erro ao salvar venda:', err);
+    res.status(500).json({ success: false, erro: 'Erro ao salvar venda' });
+  }
+});
+
+
+
+app.get('/api/vendas', async (req, res) => {
+  try {
+    const [rows] = await db.promise().query('SELECT * FROM vendas ORDER BY data_pedido DESC');
+    // Parseia o campo itens_pedido para JSON antes de enviar ao frontend
+    const vendas = rows.map(row => ({
+      ...row,
+      itens_pedido: row.itens_pedido ? JSON.parse(row.itens_pedido) : []
+    }));
+    res.json(vendas);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar vendas' });
+  }
+});
+
+
+// Atualizar status da venda
+app.put('/api/vendas/:id', async (req, res) => {
+  const { id } = req.params;
+  const { status_pedido } = req.body;
+
+  try {
+    await db.promise().query(
+      'UPDATE vendas SET status_pedido = ? WHERE id_pedido = ?',
+      [status_pedido, id]
+    );
+    res.json({ success: true, mensagem: 'Status da venda atualizado.' });
+  } catch (error) {
+    console.error('Erro ao atualizar venda:', error);
+    res.status(500).json({ erro: 'Erro ao atualizar status da venda.' });
+  }
+});
+
+
 const ip = '0.0.0.0'; // Permite conexões externas
 
 app.listen(port, '0.0.0.0', () => {

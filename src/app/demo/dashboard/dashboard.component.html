@@ -1,250 +1,162 @@
 <div class="row">
 
+  <!-- Cards dos KPIs -->
   <div class="col-xl-4 col-md-6">
-    <app-card cardTitle="TOTAL EM DINHEIRO" cardClass="Recent-Users" blockClass="p-0">
-      <div class="card-header borderless">
-          <h5 class="text-black" [class.text-muted]="modoPrivacidade">{{ modoPrivacidade ? 'R$ •••••' : ('R$ ' + (totalDinheiro | number:'1.2-2')) }}</h5>
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Pedidos Finalizados</h5>
+        <h4 class="card-text">{{ pedidosFinalizados }}</h4>
       </div>
-    </app-card>
-  </div>
-
-  <div class="col-xl-4 col-md-6">
-    <app-card cardTitle="TOTAL EM CARTÃO " cardClass="Recent-Users" blockClass="p-0">
-      <div class="card-header borderless">
-          <h5 class="text-black" [class.text-muted]="modoPrivacidade">{{ modoPrivacidade ? 'R$ •••••' : ('R$ ' + (totalCartao | number:'1.2-2')) }}</h5>
-      </div>
-    </app-card>
-  </div>
-
-
-  <div class="col-xl-4 col-md-6">
-    <app-card cardTitle="TOTAL EM PIX" cardClass="Recent-Users" blockClass="p-0">
-      <div class="card-header borderless">
-        <h5 class="text-black" [class.text-muted]="modoPrivacidade">{{ modoPrivacidade ? 'R$ •••••' : ('R$ ' + (totalPix | number:'1.2-2')) }}</h5>
-      </div>
-    </app-card>
-  </div>
-
-<!-- Últimas Vendas -->
-<div class="col-xl-8 col-md-6">
-  <app-card cardTitle="Últimas Vendas" cardClass="Recent-Users" blockClass="p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr>
-            <th>Mesa</th>
-            <th>Total (R$)</th>
-            <th>Pagamento</th>
-            <th>Tipo do Cartão</th>
-            <th>Movimento</th>
-            <th>Data</th>
-            <th>Hora</th>
-            <th>Nota</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let venda of vendas">
-            <!-- Número da Mesa -->
-            <td>
-              <h6 class="mb-1">Mesa {{ venda.numero_mesa }}</h6>
-            </td>
-            <!-- Total da Venda -->
-            <td>
-              <p class="m-0">R$ {{ venda.total | number:'1.2-2' }}</p>
-            </td>
-            <!-- Tipo de Pagamento -->
-            <td>
-              <p class="m-0">{{ venda.tipo_pagamento }}</p>
-            </td>
-            <!-- Tipo do Cartão -->
-            <td>
-              <p class="m-0">{{ venda.card_type }}</p>
-            </td>
-            <!-- Movimento -->
-            <td>
-              <p class="m-0">{{ venda.movimento || 'NA' }}</p>
-            </td>
-            <!-- Data da Venda -->
-            <td>
-              <p class="m-0">{{ venda.data_venda | date: 'dd/MM/yyyy' }}</p>
-            </td>
-            <!-- Hora da Venda -->
-            <td>
-              <p class="m-0">{{ venda.hora_venda }}</p>
-            </td>
-            <!-- Nota -->
-            <td>
-              <p class="m-0">{{ venda.nota }}</p>
-            </td>
-            <!-- Status da Venda -->
-            <td>
-              <h6 class="text-muted">
-                <i class="fas fa-circle" 
-                  [ngClass]="{
-                    'text-success': venda.status_venda == 'FINALIZADA',
-                    'text-warning': venda.status_venda == 'PENDENTE',
-                    'text-danger': venda.status_venda == 'CANCELADA'
-                  }">
-                </i> {{ venda.status_venda }}
-              </h6>
-            </td>
-            <!-- Ações -->
-            <td>
-              <a href="javascript:" class="label theme-bg text-white f-12 rounded-pill" (click)="abrirModalDetalhes(venda)" >Ajustar</a>
-              <a href="javascript:" class="label bg-danger text-white f-12 rounded-pill" (click)="deletarVenda(venda)" >Remover</a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
     </div>
-  </app-card>
-</div>
-
-  
-  <!-- Total de Ganhos -->
+  </div>
   <div class="col-xl-4 col-md-6">
-    <div class="card bg-c-blue">
-      <div class="card-header borderless">
-        <h5 class="text-white">CAIXA DIARIO {{ caixaid }} {{ status }}</h5>
-        <p class="text-white mt-3"><strong>Data Abertura:</strong> {{ data_abertura | date:'dd/MM/yyyy' }}</p>
-        <p class="text-white "><strong>Hora Abertura:</strong> {{ hora_abertura }}</p>
-        <p class="text-white"><strong>Total de Abertura:</strong> R$ {{ total_abertura }}</p>
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Pedidos Pendentes</h5>
+        <h4 class="card-text">{{ pedidosPendentes }}</h4>
       </div>
-      <div class="card-block" style="padding: 0 25px">
-        <div class="earning-text mb-0">
-          <span class="text-uppercase text-white d-block">TOTAL GANHOS</span>
-          <!-- <h3 class="mb-2 text-white f-w-300" [class.text-muted]="modoPrivacidade">R$ {{ totalGanhos | number:'1.2-2' }}<i class="feather icon-arrow-up teal accent-3"></i></h3> -->
-          <h3 class="mb-2 text-white f-w-300" [class.text-muted]="modoPrivacidade">{{ modoPrivacidade ? 'R$ •••••' : ('R$ ' + (totalGanhos | number:'1.2-2')) }}<i class="feather icon-arrow-up teal accent-3"></i></h3>
-          <BR>
-          <h5 class="text-uppercase text-white d-block" [class.text-muted]="modoPrivacidade">{{ modoPrivacidade ? 'CREDITO: R$ •••••' : ('CREDITO: R$ ' + (totalCartaoCredito | number:'1.2-2')) }}</h5>
-          <h5 class="text-uppercase text-white d-block" [class.text-muted]="modoPrivacidade">{{ modoPrivacidade ? 'Debito: R$ •••••' : ('Debito: R$ ' + (totalCartaoDebito | number:'1.2-2')) }}</h5>
-          <h5 class="text-uppercase text-white d-block" [class.text-muted]="modoPrivacidade">{{ modoPrivacidade ? 'Dinheiro: R$ •••••' : ('Dinheiro: R$ ' + (totalDinheiro | number:'1.2-2')) }}</h5>
-          <h5 class="text-uppercase text-white d-block" [class.text-muted]="modoPrivacidade">{{ modoPrivacidade ? 'PIX: R$ •••••' : ('PIX: R$ ' + (totalPix | number:'1.2-2')) }}</h5>
-
-       
-          <!-- <h5 class="text-uppercase text-white d-block"> Credito : R$ {{ totalCartaoCredito | number:'1.2-2' }}</h5> -->
-          <!-- <h5 class="text-uppercase text-white d-block"> Debito : R$ {{ totalCartaoDebito | number:'1.2-2' }}</h5> -->
-          <!-- <h5 class="text-uppercase text-white d-block"> Dinheiro : R$ {{ totalDinheiro | number:'1.2-2' }}</h5> -->
-          <!-- <h5 class="text-uppercase text-white d-block"> PIX : R$ {{ totalPix | number:'1.2-2' }}</h5> -->
-        </div>
-
-        <div id="widget-line-chart" class="WidgetlineChart2 ChartShadow" style="height: 180px">    
-          <button class="btn btn-success btn-lg" (click)="abrirModalCaixa()" >Abrir Caixa</button>
-          <!-- <button class="btn btn-secondary btn-lg" >Imprimir Caixa</button> -->
-          <button class="btn btn-danger btn-lg" (click)="fecharCaixa()" >Fechar Caixa</button> 
-          <button (click)="togglePrivacidade()" [class.ativo]="modoPrivacidade" class="botao-privacidade">Modo Privacidade: {{ modoPrivacidade ? 'ON' : 'OFF' }}</button>
-        </div>
-
+    </div>
+  </div>
+  <div class="col-xl-4 col-md-6">
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Pedidos Cancelados</h5>
+        <h4 class="card-text">{{ pedidosCancelados }}</h4>
       </div>
     </div>
   </div>
 
-
-</div>
-
-
-
-<div class="modal" *ngIf="mostrarModalVendas">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Detalhes da Venda</h5>
+  <!-- Tabela Últimas Vendas -->
+  <div class="col-xl-12 col-md-6">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Últimas Vendas</h5>
       </div>
-      <div class="modal-body">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Id Pedido</th>
+              <th>Cliente</th>
+              <th>Telefone</th>
+              <th>Endereço</th>
+              <th>CEP</th>
+              <th>E-mail</th>
+              <th>Item</th>
+              <th>Valor</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let venda of vendasPaginadas">
+              <td><h6 class="mb-1">{{ venda.id_pedido }}</h6></td>
+              <td><p class="m-0">{{ venda.nome_cliente }}</p></td>
+              <td><p class="m-0">{{ venda.telefone_cliente }}</p></td>
+              <td><p class="m-0">{{ venda.endereco_cliente }}</p></td>
+              <td><p class="m-0">{{ venda.cep_cliente }}</p></td>
+              <td><p class="m-0">{{ venda.email_cliente }}</p></td>
+              <td>
+                <p class="m-0">
+                  <ng-container *ngFor="let item of venda.itens_pedido; let last = last">
+                    {{ item.nome }}
+                    <span *ngIf="item.tamanho">({{ item.tamanho }})</span>
+                    <span *ngIf="item.quantidade">({{ item.quantidade }})</span>
+                    <span *ngIf="!last">, </span>
+                  </ng-container>
+                </p>
+              </td>
+              <td><p class="m-0">R$ {{ venda.valor | number:'1.2-2' }}</p></td>
+              <td><p class="m-0">{{ venda.data_pedido | date:'dd/MM/yyyy' }}</p></td>
+              <td>
+                <h6 class="text-muted">
+                  <i class="fas fa-circle"
+                    [ngClass]="{
+                      'text-success': venda.status_pedido === 'FINALIZADA',
+                      'text-warning': venda.status_pedido === 'PENDENTE',
+                      'text-danger': venda.status_pedido === 'CANCELADA'
+                    }"></i>
+                  {{ venda.status_pedido }}
+                </h6>
+              </td>
+              <td>
+                
+                <button class="label theme-bg text-white f-12 rounded-pill" (click)="abrirModalAjuste(venda)">Ajustar</button>
 
-        <div><strong>ID da Venda:</strong> {{ vendaSelecionada.id_venda }}</div>
-        <div><strong>Número da Mesa:</strong> {{ vendaSelecionada.numero_mesa }}</div>
-        <div><strong>Data da Venda:</strong> {{ vendaSelecionada.data_venda | date:'dd/MM/yyyy' }}</div>
-        <div><strong>Hora da Venda:</strong> {{ vendaSelecionada.hora_venda }}</div>
-        <div><strong>Total:</strong> R$ {{ vendaSelecionada.total }}</div>
+                <span class="label bg-danger text-white f-12 rounded-pill" style="cursor:pointer">Remover</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      
+      <!-- Paginação -->
+      <div class="d-flex justify-content-center my-3">
+        <nav>
+          <ul class="pagination">
+            <li class="page-item" [class.disabled]="paginaAtual === 1">
+              <a class="page-link" (click)="paginaAnterior()" href="javascript:void(0)">Anterior</a>
+            </li>
+            <li class="page-item"
+                *ngFor="let page of [].constructor(totalPaginas); let idx = index"
+                [class.active]="paginaAtual === idx + 1">
+              <a class="page-link" (click)="irParaPagina(idx + 1)" href="javascript:void(0)">{{ idx + 1 }}</a>
+            </li>
+            <li class="page-item" [class.disabled]="paginaAtual === totalPaginas">
+              <a class="page-link" (click)="proximaPagina()" href="javascript:void(0)">Próximo</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+    </div>
+  </div>
 
 
-        <div class="card" *ngFor="let divisao of divisoesPagamento; let i = index">
-          <div class="card-body row my-3">
-            <h5 class="card-title">Forma de pagamento {{ i + 1 }}</h5>
-        
-            <div class="col-md-2">
-              <strong>Valor:</strong>
-              <input type="number" class="form-control" [(ngModel)]="divisao.valor" />
-            </div>
-        
-            <div class="col-md-2">
-              <strong>Tipo Pagamento:</strong>
-              <select class="form-control" [(ngModel)]="divisao.tipoPagamento">
-                <option value="CARTAO">Cartão</option>
-                <option value="DINHEIRO">Dinheiro</option>
-                <option value="PIX">PIX</option>
-              </select>
-            </div>
-        
-            <div class="col-md-2" *ngIf="divisao.tipoPagamento === 'CARTAO'">
-              <strong>Operação:</strong>
-              <select class="form-control" [(ngModel)]="divisao.operacao">
-                <option value="Credito">Crédito</option>
-                <option value="Debito">Débito</option>
-              </select>
-            </div>
-        
-        
-            <div class="col-md-2 d-flex align-items-end">
-              <button class="btn btn-danger" (click)="removerDivisao(i)">🗑</button>
-            </div>
 
+  <!-- Modal de Ajuste de Pedido -->
+  <div class="modal fade show" tabindex="-1" [ngStyle]="{display: mostrarModalAjuste ? 'block' : 'none'}" style="background: rgba(0,0,0,0.3);" *ngIf="pedidoSelecionado">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">Ajustar Pedido #{{pedidoSelecionado.id_pedido}}</h5>
+          <button type="button" class="btn-close" (click)="fecharModalAjuste()"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="mb-3">
+            <label>Status do Pedido:</label>
+            <select class="form-select" [(ngModel)]="pedidoSelecionado.status_pedido">
+              <option value="PENDENTE">PENDENTE</option>
+              <option value="FINALIZADA">FINALIZADA</option>
+              <option value="CANCELADA">CANCELADA</option>
+            </select>
           </div>
+          
+          <h6>Itens do Pedido:</h6>
+          <ul class="list-group">
+            <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let item of pedidoSelecionado.itens_pedido">
+              <span>
+                {{ item.nome }}
+                <span *ngIf="item.tamanho">({{ item.tamanho }})</span>
+                <span *ngIf="item.quantidade"> x{{ item.quantidade }}</span>
+              </span>
+              <span>R$ {{ item.preco }}</span>
+            </li>
+          </ul>
         </div>
-        
 
-    
-
-        <div class="text-end my-2">
-          <button class="btn btn-success" (click)="adicionarDivisao()">+ Adicionar Ajuste</button>
+        <div class="modal-footer">
+          <button class="btn btn-primary" (click)="salvarStatusPedido()">Salvar</button>
+          <button class="btn btn-secondary" (click)="fecharModalAjuste()">Fechar</button>
         </div>
 
       </div>
-
-      <div class="modal-footer">
-        <p class="text-end">
-          Total dividido: R$ {{ totalDividido.toFixed(2) }} / R$ {{ vendaSelecionada.total }} 
-          <span *ngIf="totalConfere" class="text-success">✅</span>
-          <span *ngIf="!totalConfere" class="text-danger">❌</span>
-        </p>
-        <button type="button" class="btn btn-primary" (click)="salvarVendaComDivisao()">Salvar</button>
-        <button type="button" class="btn btn-secondary" (click)="fecharModalVendas()">Fechar</button>
-      </div>
-
     </div>
   </div>
+
+
 </div>
-
-<div class="modal-backdrop fade show" *ngIf="mostrarModalVendas"></div>
-
-<div class="modal" *ngIf="mostrarModalCaixa">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <h5 class="modal-title">Detalhes da Venda</h5>
-      </div>
-
-      <div class="modal-body">
-
-        <div class="form-group">
-          <label for="valorabertura">Valor de abertura</label>
-          <input  id="totalAbertura" type="number" class="form-control my-3"  [(ngModel)]="totalAbertura" name="totalAbertura" />
-        </div>
-    
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" (click)=" abrirCaixa()">Salvar</button>
-        <button type="button" class="btn btn-secondary" (click)="fecharModalCaixa()">Fechar</button>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<div class="modal-backdrop fade show" *ngIf="mostrarModalCaixa"></div>
-
