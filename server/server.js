@@ -709,6 +709,7 @@ app.get('/api/produto-destaque', async (req, res) => {
 
 
 
+
 // Deletar venda
 app.delete('/api/vendas/:id', async (req, res) => {
   const { id } = req.params;
