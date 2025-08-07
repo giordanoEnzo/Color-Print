@@ -8,37 +8,36 @@ const jwt = require('jsonwebtoken');
 
 const path = require('path');
 const fs = require('fs');
-const { exec } = require('child_process');
 
 const axios = require('axios');
 
 const app = express();
 const port = process.env.PORT || 2000;
 
-const allowedOrigins = ['http://localhost:4200', 'http://192.168.99.100:5000/api'];
+// const allowedOrigins = ['http://localhost:4200', 'http://192.168.99.100:5000/api'];
 
 const MELHOR_ENVIO_TOKEN = process.env.MELHOR_ENVIO_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiOTRkMGY5MDg3YWI3YzMzOGRhOWFkMWI4NWJlMTAzZmI3ZDFjNDg0Y2RhZjg0YjZkMmEyOGJkZDU4NzE5Y2IwNTZkZGNjODE5ZGUwNTIwZjciLCJpYXQiOjE3NTQ0MTg4MDcuNzk0OTQsIm5iZiI6MTc1NDQxODgwNy43OTQ5NDEsImV4cCI6MTc4NTk1NDgwNy43ODE2MjUsInN1YiI6IjlmOGQ1NDg3LWY5YTMtNDRjYy04ZTliLWY1Y2NiMzZkZjczYSIsInNjb3BlcyI6WyJzaGlwcGluZy1jYWxjdWxhdGUiXX0.oFa_S29Kj7A_7rYP-D-aafPLtRFxkts3OIicWq3DNdpF-HutZfDIO9SHowEx0mOLDTW4Xv8azRH24zlGaSbmKNJeXChp33OW-snld8KMA_L93DySPsHN66TbxyeBKgubxdB82QZNSQv5_tDIcdJFVx7jmuZVjr3ZfZbW-YZK5nB67QNBNU8JAvV2N-PaAKd4Uqr9H8401sl0CrIhShQuabsFb2orkyFXNid39FxEbtGJUrXlWfnGzOFDCQGjBDJRNH2QEmZBKeRF6tS6Uvofz1-0urNkxoH1H1PsVOiGh2W1ihMHjL7WORvEZjKK0E8ZXJZWOlFFEqTmWmcj7DUWx1jTA99rS_lGsTDHD2ZDNHIXvX-LSiabEp280PXbah_PVlUx2WtZq1oCKWjTR3ZpRWtgggNubneB9vBoyfGsekk2Hx_Gx6OcDZEHnzj3C7e5E7N0MlcjPeIzbNFjjpKAfjJnpKvPz4okn4ILKCR_z8cVxs-vWEoG29ao0JmlTwmRCzPoPpu9_N2iGBaX-WkDPukzJqW0340Ai4YtcIuX4s_CBrnKgGphU0ynSPyn4h94sXBlcL3DwPWTeekIIfTnAEKfhvvGX8QjMFKM4b9qO2FX0TzKtFll4-_oHUbKFuUzALPkjQL8-myA75up7Zppo_FjEW9uJkkvdTzmcW24R-U';
 
-const corsOptions = {
-  origin: function(origin, callback) {
-    // Se não tem origem (ex: requisição de Postman), permite
-    if (!origin) return callback(null, true);
+// const corsOptions = {
+//   origin: function(origin, callback) {
+//     // Se não tem origem (ex: requisição de Postman), permite
+//     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      // Origem permitida
-      callback(null, true);
-    } else {
-      // Origem não permitida
-      callback(new Error('Não permitido por CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
+//     if (allowedOrigins.indexOf(origin) !== -1) {
+//       // Origem permitida
+//       callback(null, true);
+//     } else {
+//       // Origem não permitida
+//       callback(new Error('Não permitido por CORS'));
+//     }
+//   },
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+// };
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+// app.use(cors(corsOptions));
+// app.options('*', cors(corsOptions));
 
 // Middleware para habilitar JSON
 app.use(express.json());
@@ -57,8 +56,6 @@ const db = mysql.createPool({
 const accessToken = 'APP_USR-6075250848382634-062113-eadc8f1b789f83bf6d218a2c84d5a5c5-2191408844'
 
 const { MercadoPagoConfig, Payment, Preference } = require('mercadopago');
-
-const { calcularPrecoPrazo } = require('correios-brasil');
 
 const client = new MercadoPagoConfig({
     accessToken: accessToken,
@@ -706,8 +703,6 @@ app.get('/api/produto-destaque', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao buscar produto em destaque.' });
   }
 });
-
-
 
 
 // Deletar venda
