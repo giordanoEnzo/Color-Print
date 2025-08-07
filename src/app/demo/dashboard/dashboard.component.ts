@@ -104,4 +104,24 @@ export default class DashboardComponent implements OnInit {
       }
     });
   }
+
+  // MÉTODO NOVO: Remover venda
+  removerVenda(id: number) {
+    if (confirm('Tem certeza que deseja remover esta venda?')) {
+      this.http.delete(`${environment.apiUrl}/vendas/${id}`).subscribe({
+        next: () => {
+          // Remove localmente para resposta rápida
+          this.vendas = this.vendas.filter(v => v.id_pedido !== id);
+          // Recalcula os contadores
+          this.pedidosFinalizados = this.vendas.filter(v => v.status_pedido === 'FINALIZADA').length;
+          this.pedidosPendentes = this.vendas.filter(v => v.status_pedido === 'PENDENTE').length;
+          this.pedidosCancelados = this.vendas.filter(v => v.status_pedido === 'CANCELADA').length;
+        },
+        error: (err) => {
+          alert('Erro ao remover venda!');
+          console.error('Erro ao remover venda:', err);
+        }
+      });
+    }
+  }
 }

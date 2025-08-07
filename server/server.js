@@ -708,6 +708,20 @@ app.get('/api/produto-destaque', async (req, res) => {
 });
 
 
+
+// Deletar venda
+app.delete('/api/vendas/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.promise().query('DELETE FROM vendas WHERE id_pedido = ?', [id]);
+    res.json({ success: true, mensagem: 'Venda deletada com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao deletar venda:', error);
+    res.status(500).json({ erro: 'Erro ao deletar venda.' });
+  }
+});
+
+
 const ip = '0.0.0.0'; // Permite conexões externas
 
 app.listen(port, '0.0.0.0', () => {
