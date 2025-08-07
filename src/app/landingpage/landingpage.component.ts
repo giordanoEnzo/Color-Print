@@ -6,6 +6,7 @@ import { CartService } from 'src/app/services/cart.service';
 import { Router } from '@angular/router';
 import { Produto } from 'src/app/services/cart.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { environment } from 'src/environments/environment';
 
 interface Categoria {
   id_categoria: number;
@@ -212,6 +213,9 @@ export class LandingpageComponent implements OnInit {
 
   getImagemUrl(imagem: string): string {
     if (!imagem) return 'assets/images/placeholder.jpg';
-    return `http://192.168.99.103:5000/uploads/produtos/${imagem}`;
+    // Garante barra única!
+    return `${environment.assetsUrl.replace(/\/$/, '')}/uploads/produtos/${imagem}`;
   }
+
+
 }
