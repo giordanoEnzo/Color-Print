@@ -6,6 +6,9 @@
           <div class="card product-card">
             <img [src]="produto.imagemUrl" alt="{{ produto.nome }}" class="card-img-top product-image" />
             <div class="card-body">
+              <div *ngIf="produto.destaque" class="destaque-badge-wrapper">
+                <span class="badge badge-warning destaque-badge">Destaque</span>
+              </div>
               <h5 class="card-title product-title">{{ produto.nome }}</h5>
               <p class="card-text product-price">{{ produto.preco | currency: 'BRL' }}</p>
               <p class="card-text product-description">{{ produto.descricao }}</p>
@@ -30,29 +33,31 @@
             <label for="nome">Nome*</label>
             <input id="nome" class="form-control" [(ngModel)]="novoProduto.nome" name="nome" required>
           </div>
-
           <div class="form-group">
             <label for="descricao">Descrição*</label>
             <textarea id="descricao" class="form-control" [(ngModel)]="novoProduto.descricao" name="descricao" placeholder="Descreva o produto" required rows="3"></textarea>
           </div>
-
           <div class="form-group">
             <label for="preco">Preço (R$)*</label>
             <input id="preco" type="number" step="0.01" class="form-control" [(ngModel)]="novoProduto.preco" name="preco" required>
           </div>
-
-          <div class="form-group">
-            <label for="destaque">
-              <input id="destaque" type="checkbox" [(ngModel)]="novoProduto.destaque" name="destaque">
+          <div class="form-group destaque-row mb-3">
+            <label class="form-label mb-0">
+              <input
+                type="checkbox"
+                [(ngModel)]="produtoEmEdicao.destaque"
+                name="destaqueEdicao"
+                id="destaqueEdicao"
+                class="form-check-input"
+                style="vertical-align: middle; accent-color: #ffd600; margin-right: 8px;"
+              />
               Produto em Destaque
             </label>
           </div>
-
           <div class="form-group">
             <label for="estoque">Estoque*</label>
             <input id="estoque" type="number" class="form-control" [(ngModel)]="novoProduto.estoque" name="estoque" required>
           </div>
-
           <div class="form-group">
             <label for="categoria">Categoria*</label>
             <select id="categoria" [(ngModel)]="novoProduto.id_categoria" name="id_categoria" class="form-control" required>
@@ -62,12 +67,10 @@
               </option>
             </select>
           </div>
-
           <div class="form-group">
             <label for="imagem">Imagem*</label>
             <input type="file" id="imagem" class="form-control" (change)="onFileSelected($event)" accept="image/*" required>
           </div>
-
           <div class="form-actions">
             <button type="button" class="btn btn-secondary" (click)="toggleFormulario()">Cancelar</button>
             <button type="submit" class="btn btn-primary">Salvar</button>
@@ -88,30 +91,30 @@
           <label>Nome*</label>
           <input [(ngModel)]="produtoEmEdicao.nome" name="nome" class="form-control" required>
         </div>
-
         <div class="form-group">
           <label for="descricaoEdicao">Descrição*</label>
           <textarea id="descricaoEdicao" [(ngModel)]="produtoEmEdicao.descricao" name="descricaoEdicao" class="form-control" rows="3" required></textarea>
         </div>
-
         <div class="form-group">
           <label>Preço (R$)*</label>
           <input [(ngModel)]="produtoEmEdicao.preco" name="preco" type="number" step="0.01" class="form-control" required>
         </div>
-
+        <div class="form-group">
+          <label>
+            <input id="destaqueEdicao" type="checkbox" [(ngModel)]="produtoEmEdicao.destaque" name="destaqueEdicao" (change)="aoMarcarDestaqueEdicao()">
+            Produto em Destaque
+          </label>
+        </div>
         <!-- Variações -->
         <div class="form-group mt-4">
           <label>Variações</label>
-
           <div *ngFor="let variacao of produtoEmEdicao.variacoes; let i = index" class="d-flex gap-2 mb-2">
             <input class="form-control" placeholder="Opção (Ex: P, M, G)" [(ngModel)]="variacao.descricao_opcao" name="opcaoEdicao{{i}}" />
             <input class="form-control" type="number" step="0.01" placeholder="Preço adicional" [(ngModel)]="variacao.preco_adicional" name="precoEdicao{{i}}" />
             <button type="button" class="btn btn-danger" (click)="removerVariacao(i)">✖</button>
           </div>
-
           <button type="button" class="btn btn-outline-primary btn-sm" (click)="adicionarVariacao()">+ Adicionar Variação</button>
         </div>
-
         <div class="form-group">
           <label>Imagem</label>
           <div class="image-preview" *ngIf="produtoEmEdicao.imagemUrl">
@@ -122,9 +125,6 @@
             <span>{{ produtoEmEdicao.imagem ? 'Alterar' : 'Selecionar' }} Arquivo</span>
           </label>
         </div>
-
- 
-
         <div class="modal-actions">
           <button type="button" class="btn btn-cancel" (click)="cancelarEdicao()">Cancelar</button>
           <button type="submit" class="btn btn-save">Salvar</button>

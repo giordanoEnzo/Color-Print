@@ -113,6 +113,11 @@ export class TblProdutosComponent implements OnInit {
   adicionarProduto(): void {
     if (!this.validarProduto()) return;
 
+    // Se marcado como destaque, remove destaque dos outros no front
+    if (this.novoProduto.destaque) {
+      this.desmarcarTodosDestaquesMenosAtual();
+    }
+
     const formData = new FormData();
     formData.append('nome', this.novoProduto.nome);
     formData.append('descricao', this.novoProduto.descricao || '');
@@ -217,6 +222,11 @@ export class TblProdutosComponent implements OnInit {
   salvarEdicao(): void {
     if (!this.produtoEmEdicao) return;
 
+    // Se marcado como destaque, remove destaque dos outros no front
+    if (this.produtoEmEdicao.destaque) {
+      this.desmarcarTodosDestaquesMenosAtual(this.produtoEmEdicao.id_produto);
+    }
+
     const {
       id_produto,
       nome,
@@ -298,5 +308,24 @@ export class TblProdutosComponent implements OnInit {
   cancelarEdicao(): void {
     this.produtoEmEdicao = null;
     this.imagemEditada = null;
+  }
+
+  // --- DESTAQUE: Controle só um ativo ---
+  aoMarcarDestaqueNovoProduto() {
+    if (this.novoProduto.destaque) {
+      this.desmarcarTodosDestaquesMenosAtual();
+    }
+  }
+
+  aoMarcarDestaqueEdicao() {
+    if (this.produtoEmEdicao.destaque) {
+      this.desmarcarTodosDestaquesMenosAtual(this.produtoEmEdicao.id_produto);
+    }
+  }
+
+  desmarcarTodosDestaquesMenosAtual(idAtual: number = 0) {
+    this.produtos.forEach(p => {
+      if (p.id_produto !== idAtual) p.destaque = false;
+    });
   }
 }

@@ -688,6 +688,25 @@ app.put('/api/vendas/:id', async (req, res) => {
   }
 });
 
+// Rota para retornar o produto em destaque (se houver)
+app.get('/api/produto-destaque', async (req, res) => {
+  try {
+    const [rows] = await db.promise().query(
+      "SELECT * FROM produtos WHERE destaque = 1 LIMIT 1"
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ erro: 'Nenhum produto em destaque encontrado.' });
+    }
+    const produto = rows[0];
+    produto.imagemUrl = produto.imagem
+      ? `${req.protocol}://${req.headers.host}/uploads/produtos/${produto.imagem}`
+      : null;
+    res.json(produto);
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao buscar produto em destaque.' });
+  }
+});
+
 
 const ip = '0.0.0.0'; // Permite conexões externas
 

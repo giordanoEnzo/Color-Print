@@ -20,7 +20,6 @@ interface VariacaoProduto {
   descricao_opcao: string;
   preco_adicional: number;
 }
-// ... [importações e interfaces inalteradas]
 
 @Component({
   selector: 'app-landingpage',
@@ -49,12 +48,13 @@ export class LandingpageComponent implements OnInit {
   quantidade: number = 1;
   precoCalculado: number = 0;
 
+  // Agora ele será sobrescrito pelo backend (produto em destaque do banco)
   produtoDestaque: Produto = {
-    id_produto: 999,
-    nome: 'Placas adesivas proibido estacionar 2x2 100 Unidades',
-    preco: 35.0,
-    imagem: 'assets/images/produtos/SC001.jpg',
-    descricao: 'Adesivo para Placa de Transito 50x50cm A-18 Saliencia Lombada...'
+    id_produto: 0,
+    nome: 'Produto em destaque',
+    preco: 0,
+    imagem: '',
+    descricao: ''
   };
 
   constructor(
@@ -67,6 +67,22 @@ export class LandingpageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Busca o produto destaque na inicialização
+    this.produtoService.getProdutoDestaque().subscribe({
+      next: (res: Produto) => {
+        if (res) this.produtoDestaque = res;
+      },
+      error: () => {
+        this.produtoDestaque = {
+          id_produto: 0,
+          nome: 'Produto em destaque',
+          preco: 0,
+          imagem: '',
+          descricao: ''
+        };
+      }
+    });
+
     this.carregarCategoriasComProdutos();
   }
 
@@ -128,12 +144,10 @@ export class LandingpageComponent implements OnInit {
         ];
 
         this.variacoesProduto = variacoes;
-        this.variacaoSelecionada = variacoes[0]; // "Padrão" por padrão
+        this.variacaoSelecionada = variacoes[0];
         this.calcularPreco();
       },
       error: (err) => {
-        console.error('Erro ao carregar variações:', err);
-
         const variacoes = [
           {
             id_variacao: 0,
@@ -213,9 +227,6 @@ export class LandingpageComponent implements OnInit {
 
   getImagemUrl(imagem: string): string {
     if (!imagem) return 'assets/images/placeholder.jpg';
-    // Garante barra única!
     return `${environment.assetsUrl.replace(/\/$/, '')}/uploads/produtos/${imagem}`;
   }
-
-
 }
