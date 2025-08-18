@@ -7,5 +7,9 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./sobre.component.scss']
 })
 export class SobreComponent {
-  imagemEquipeUrl = `${environment.assetsUrl}/uploads/imagens/equipe.jpg`;
+  // cache-buster pra refletir troca imediata feita no admin
+  private _cb = `?v=${Date.now()}`;
+
+  // usa sempre o B4.jpg do backend
+  imagemEquipeUrl = `${environment.assetsUrl.replace(/\/$/, '')}/uploads/imagens/B4.jpg${this._cb}`;
 }

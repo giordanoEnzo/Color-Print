@@ -24,6 +24,10 @@ const routes: Routes = [
       {
         path: 'categorias',
         loadComponent: () => import('./tbl-categorias/tbl-categorias.component').then(m => m.TblCategoriasComponent)
+      },
+      {
+        path: 'banners',
+        loadComponent: () => import('./tbl-banners/tbl-banners.component').then(m => m.TblBannersComponent)
       }
     ],
     

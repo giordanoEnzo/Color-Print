@@ -8,6 +8,7 @@ import { TblFuncionariosComponent } from './tbl-funcionarios/tbl-funcionarios.co
 import { TblMesasComponent } from './tbl-mesa/tbl-mesa.component';
 import { TblPedidosComponent } from './tbl-pedidos/tbl-pedidos.component';
 import { TblCategoriasComponent } from './tbl-categorias/tbl-categorias.component';
+import { TblBannersComponent } from './tbl-banners/tbl-banners.component';
 
 
 @NgModule({
@@ -16,7 +17,8 @@ import { TblCategoriasComponent } from './tbl-categorias/tbl-categorias.componen
     TblFuncionariosComponent, // Declare o componente TblFuncionariosComponent
     TblMesasComponent,        // Declare o componente TblMesasComponent
     TblPedidosComponent,      // Declare o componente TblPedidosComponent
-    TblCategoriasComponent    // Declare o componente TblCategoriasComponent
+    TblCategoriasComponent,   // Declare o componente TblCategoriasComponent
+    TblBannersComponent       // Declare o componente TblBannersComponent
   ],
   
   imports: [

@@ -1,0 +1,60 @@
+
+<!-- B1 -->
+<div class="banner-card" [class.loading]="carregando">
+  <div class="title">B1 — Home (Topo)</div>
+  <div class="preview">
+    <img *ngIf="b1Url; else empty1" [src]="b1Url" alt="Banner 1">
+    <ng-template #empty1><div class="placeholder">Sem imagem</div></ng-template>
+  </div>
+  <div class="actions">
+    <input type="file" accept="image/jpeg" id="file-b1" (change)="onFileChange('b1', $event)" hidden>
+    <label for="file-b1" class="btn">Selecionar imagem (.jpg)</label>
+    <button class="btn primary" [disabled]="!b1File || carregando" (click)="salvar('b1')">Salvar</button>
+    <button class="btn danger" [disabled]="carregando || !b1Url" (click)="limpar('b1')">Remover</button>
+  </div>
+</div>
+
+<!-- B2 -->
+<div class="banner-card" [class.loading]="carregando">
+  <div class="title">B2 — Home (Meio)</div>
+  <div class="preview">
+    <img *ngIf="b2Url; else empty2" [src]="b2Url" alt="Banner 2">
+    <ng-template #empty2><div class="placeholder">Sem imagem</div></ng-template>
+  </div>
+  <div class="actions">
+    <input type="file" accept="image/jpeg" id="file-b2" (change)="onFileChange('b2', $event)" hidden>
+    <label for="file-b2" class="btn">Selecionar imagem (.jpg)</label>
+    <button class="btn primary" [disabled]="!b2File || carregando" (click)="salvar('b2')">Salvar</button>
+    <button class="btn danger" [disabled]="carregando || !b2Url" (click)="limpar('b2')">Remover</button>
+  </div>
+</div>
+
+<!-- B3 -->
+<div class="banner-card" [class.loading]="carregando">
+  <div class="title">B3 — Home (Base)</div>
+  <div class="preview">
+    <img *ngIf="b3Url; else empty3" [src]="b3Url" alt="Banner 3">
+    <ng-template #empty3><div class="placeholder">Sem imagem</div></ng-template>
+  </div>
+  <div class="actions">
+    <input type="file" accept="image/jpeg" id="file-b3" (change)="onFileChange('b3', $event)" hidden>
+    <label for="file-b3" class="btn">Selecionar imagem (.jpg)</label>
+    <button class="btn primary" [disabled]="!b3File || carregando" (click)="salvar('b3')">Salvar</button>
+    <button class="btn danger" [disabled]="carregando || !b3Url" (click)="limpar('b3')">Remover</button>
+  </div>
+</div>
+
+<!-- B4 -->
+<div class="banner-card" [class.loading]="carregando">
+  <div class="title">B4 — Página Sobre</div>
+  <div class="preview">
+    <img *ngIf="b4Url; else empty4" [src]="b4Url" alt="Banner 4">
+    <ng-template #empty4><div class="placeholder">Sem imagem</div></ng-template>
+  </div>
+  <div class="actions">
+    <input type="file" accept="image/jpeg" id="file-b4" (change)="onFileChange('b4', $event)" hidden>
+    <label for="file-b4" class="btn">Selecionar imagem (.jpg)</label>
+    <button class="btn primary" [disabled]="!b4File || carregando" (click)="salvar('b4')">Salvar</button>
+    <button class="btn danger" [disabled]="carregando || !b4Url" (click)="limpar('b4')">Remover</button>
+  </div>
+</div>

@@ -19,14 +19,6 @@
         <img [src]="slide.imagem" [alt]="slide.alt" class="banner-bg" />
       </div>
       
-      <!-- Destaque fixo -->
-      <div class="highlight-card">
-        <img [src]="getImagemUrl(produtoDestaque.imagem)" alt="Produto em destaque" />
-        <h4>{{ produtoDestaque.nome }}</h4>
-        <p>{{ produtoDestaque.preco | currency:'BRL' }}</p>
-        <button class="btn-pulse" (click)="abrirModal(produtoDestaque)">ADICIONAR CARRINHO</button>
-      </div>
-
       <button class="carousel-btn prev" (click)="voltarSlide()">‹</button>
       <button class="carousel-btn next" (click)="avancarSlide()">›</button>
     </div>
@@ -119,12 +111,11 @@
             {{ variacao.descricao_opcao }}
             <br />
             <ng-container *ngIf="variacao.descricao_opcao !== 'Padrão'">
-              <strong>+ R{{ variacao.preco_adicional | number:'1.2-2' }}</strong>
+              <strong>+ R$ {{ variacao.preco_adicional | number:'1.2-2' }}</strong>
             </ng-container>
           </div>
         </div>
       </div>
-
 
       <!-- QUANTIDADE -->
       <div class="quantidade-control">

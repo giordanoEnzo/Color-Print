@@ -14,30 +14,30 @@ const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 2000;
 
-// const allowedOrigins = ['http://localhost:4200', 'http://192.168.99.100:5000/api'];
+const allowedOrigins = ['http://localhost:4200', 'http://192.168.99.103:5000/api'];
 
 const MELHOR_ENVIO_TOKEN = process.env.MELHOR_ENVIO_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiOTRkMGY5MDg3YWI3YzMzOGRhOWFkMWI4NWJlMTAzZmI3ZDFjNDg0Y2RhZjg0YjZkMmEyOGJkZDU4NzE5Y2IwNTZkZGNjODE5ZGUwNTIwZjciLCJpYXQiOjE3NTQ0MTg4MDcuNzk0OTQsIm5iZiI6MTc1NDQxODgwNy43OTQ5NDEsImV4cCI6MTc4NTk1NDgwNy43ODE2MjUsInN1YiI6IjlmOGQ1NDg3LWY5YTMtNDRjYy04ZTliLWY1Y2NiMzZkZjczYSIsInNjb3BlcyI6WyJzaGlwcGluZy1jYWxjdWxhdGUiXX0.oFa_S29Kj7A_7rYP-D-aafPLtRFxkts3OIicWq3DNdpF-HutZfDIO9SHowEx0mOLDTW4Xv8azRH24zlGaSbmKNJeXChp33OW-snld8KMA_L93DySPsHN66TbxyeBKgubxdB82QZNSQv5_tDIcdJFVx7jmuZVjr3ZfZbW-YZK5nB67QNBNU8JAvV2N-PaAKd4Uqr9H8401sl0CrIhShQuabsFb2orkyFXNid39FxEbtGJUrXlWfnGzOFDCQGjBDJRNH2QEmZBKeRF6tS6Uvofz1-0urNkxoH1H1PsVOiGh2W1ihMHjL7WORvEZjKK0E8ZXJZWOlFFEqTmWmcj7DUWx1jTA99rS_lGsTDHD2ZDNHIXvX-LSiabEp280PXbah_PVlUx2WtZq1oCKWjTR3ZpRWtgggNubneB9vBoyfGsekk2Hx_Gx6OcDZEHnzj3C7e5E7N0MlcjPeIzbNFjjpKAfjJnpKvPz4okn4ILKCR_z8cVxs-vWEoG29ao0JmlTwmRCzPoPpu9_N2iGBaX-WkDPukzJqW0340Ai4YtcIuX4s_CBrnKgGphU0ynSPyn4h94sXBlcL3DwPWTeekIIfTnAEKfhvvGX8QjMFKM4b9qO2FX0TzKtFll4-_oHUbKFuUzALPkjQL8-myA75up7Zppo_FjEW9uJkkvdTzmcW24R-U';
 
-// const corsOptions = {
-//   origin: function(origin, callback) {
-//     // Se não tem origem (ex: requisição de Postman), permite
-//     if (!origin) return callback(null, true);
+const corsOptions = {
+  origin: function(origin, callback) {
+    // Se não tem origem (ex: requisição de Postman), permite
+    if (!origin) return callback(null, true);
 
-//     if (allowedOrigins.indexOf(origin) !== -1) {
-//       // Origem permitida
-//       callback(null, true);
-//     } else {
-//       // Origem não permitida
-//       callback(new Error('Não permitido por CORS'));
-//     }
-//   },
-//   credentials: true,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-// };
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      // Origem permitida
+      callback(null, true);
+    } else {
+      // Origem não permitida
+      callback(new Error('Não permitido por CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-// app.use(cors(corsOptions));
-// app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Middleware para habilitar JSON
 app.use(express.json());
@@ -243,6 +243,90 @@ const upload = multer({ storage: storage });
 app.use('/uploads/produtos', express.static(path.join(__dirname, 'uploads/produtos')));
 app.use('/uploads/imagens', express.static(path.join(__dirname, 'uploads/imagens')));
 
+
+// === BANNERS por arquivos fixos (B1..B4) ===
+const ensureDir = (dirPath) => { try { fs.mkdirSync(dirPath, { recursive: true }); } catch (_) {} };
+const bannersDir = path.join(__dirname, 'uploads', 'imagens');
+ensureDir(bannersDir);
+
+// Mapeia campo -> arquivo final .jpg
+const BANNER_MAP = { B1: 'B1.jpg', B2: 'B2.jpg', B3: 'B3.jpg', B4: 'B4.jpg' };
+
+// Aceitamos apenas JPEG p/ manter extensão fixa .jpg
+const uploadBanners = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, bannersDir),
+    filename: (req, file, cb) => {
+      const field = file.fieldname; // 'B1' | 'B2' | 'B3' | 'B4'
+      const targetName = BANNER_MAP[field];
+      cb(null, targetName || `IGNORADO_${Date.now()}.jpg`);
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    if (['image/jpeg', 'image/jpg'].includes(file.mimetype)) return cb(null, true);
+    return cb(new Error('Apenas JPEG é permitido para banners (use .jpg).'));
+  },
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+});
+
+// Lista nomes existentes com URL
+function listBannerUrls(req) {
+  const out = {};
+  for (const [slot, filename] of Object.entries(BANNER_MAP)) {
+    const full = path.join(bannersDir, filename);
+    out[slot] = fs.existsSync(full)
+      ? `${req.protocol}://${req.headers.host}/uploads/imagens/${filename}`
+      : null;
+  }
+  return out;
+}
+
+// GET atual (URLs estáveis)
+app.get('/api/banner-files', (req, res) => {
+  try {
+    return res.json(listBannerUrls(req)); // { B1: "http://.../B1.jpg", ... }
+  } catch (err) {
+    console.error('[BANNERS FILES][GET] Erro:', err);
+    return res.status(500).json({ erro: 'Erro ao listar banners.' });
+  }
+});
+
+// PUT multipart: atualiza 1..n slots (B1,B2,B3,B4) sobrescrevendo B?.jpg
+app.put(
+  '/api/banner-files',
+  uploadBanners.fields([
+    { name: 'B1', maxCount: 1 },
+    { name: 'B2', maxCount: 1 },
+    { name: 'B3', maxCount: 1 },
+    { name: 'B4', maxCount: 1 }
+  ]),
+  async (req, res) => {
+    try {
+      // Como o filename já é fixo no storage, ao salvar substitui o antigo automaticamente.
+      // Apenas garantimos que só campos válidos foram aceitos.
+      return res.json(listBannerUrls(req));
+    } catch (err) {
+      console.error('[BANNERS FILES][PUT] Erro:', err);
+      return res.status(500).json({ erro: err.message || 'Erro ao atualizar banners.' });
+    }
+  }
+);
+
+// DELETE opcional: limpa um slot (remove B?.jpg)
+app.delete('/api/banner-files/:slot', (req, res) => {
+  const slot = req.params.slot.toUpperCase(); // B1..B4
+  const filename = BANNER_MAP[slot];
+  if (!filename) return res.status(400).json({ erro: 'Slot inválido. Use B1, B2, B3 ou B4.' });
+
+  try {
+    const full = path.join(bannersDir, filename);
+    if (fs.existsSync(full)) fs.unlinkSync(full);
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('[BANNERS FILES][DELETE] Erro:', err);
+    return res.status(500).json({ erro: 'Erro ao remover banner.' });
+  }
+});
 
 
 
