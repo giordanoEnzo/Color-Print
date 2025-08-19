@@ -16,4 +16,8 @@ export interface Produto {
     descricao_opcao: string;
     preco_adicional: number;
   }[];
+  width_cm?: number | null;
+  height_cm?: number | null;
+  length_cm?: number | null;
+  weight_kg?: number | null;
 }

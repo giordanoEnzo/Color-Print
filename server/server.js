@@ -14,20 +14,58 @@ const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 2000;
 
-const allowedOrigins = ['http://localhost:4200', 'http://192.168.99.103:5000/api'];
+/** CORS – adicione aqui as origens do seu front */
+const allowedOrigins = [
+  'http://localhost:4200',
+  'http://192.168.99.103:4200'
+];
 
-const MELHOR_ENVIO_TOKEN = process.env.MELHOR_ENVIO_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiOTRkMGY5MDg3YWI3YzMzOGRhOWFkMWI4NWJlMTAzZmI3ZDFjNDg0Y2RhZjg0YjZkMmEyOGJkZDU4NzE5Y2IwNTZkZGNjODE5ZGUwNTIwZjciLCJpYXQiOjE3NTQ0MTg4MDcuNzk0OTQsIm5iZiI6MTc1NDQxODgwNy43OTQ5NDEsImV4cCI6MTc4NTk1NDgwNy43ODE2MjUsInN1YiI6IjlmOGQ1NDg3LWY5YTMtNDRjYy04ZTliLWY1Y2NiMzZkZjczYSIsInNjb3BlcyI6WyJzaGlwcGluZy1jYWxjdWxhdGUiXX0.oFa_S29Kj7A_7rYP-D-aafPLtRFxkts3OIicWq3DNdpF-HutZfDIO9SHowEx0mOLDTW4Xv8azRH24zlGaSbmKNJeXChp33OW-snld8KMA_L93DySPsHN66TbxyeBKgubxdB82QZNSQv5_tDIcdJFVx7jmuZVjr3ZfZbW-YZK5nB67QNBNU8JAvV2N-PaAKd4Uqr9H8401sl0CrIhShQuabsFb2orkyFXNid39FxEbtGJUrXlWfnGzOFDCQGjBDJRNH2QEmZBKeRF6tS6Uvofz1-0urNkxoH1H1PsVOiGh2W1ihMHjL7WORvEZjKK0E8ZXJZWOlFFEqTmWmcj7DUWx1jTA99rS_lGsTDHD2ZDNHIXvX-LSiabEp280PXbah_PVlUx2WtZq1oCKWjTR3ZpRWtgggNubneB9vBoyfGsekk2Hx_Gx6OcDZEHnzj3C7e5E7N0MlcjPeIzbNFjjpKAfjJnpKvPz4okn4ILKCR_z8cVxs-vWEoG29ao0JmlTwmRCzPoPpu9_N2iGBaX-WkDPukzJqW0340Ai4YtcIuX4s_CBrnKgGphU0ynSPyn4h94sXBlcL3DwPWTeekIIfTnAEKfhvvGX8QjMFKM4b9qO2FX0TzKtFll4-_oHUbKFuUzALPkjQL8-myA75up7Zppo_FjEW9uJkkvdTzmcW24R-U';
+/** Helpers numéricos */
+function numOrNull(v) {
+  if (v === undefined || v === null || v === '') return null;
+  const n = Number(String(v).replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+}
+function toNumber(v, fallback = 0) {
+  const n = numOrNull(v);
+  return n === null ? fallback : n;
+}
+
+/** Token do Melhor Envio (obrigatório) */
+const MELHOR_ENVIO_TOKEN = process.env.MELHOR_ENVIO_TOKEN;
+if (!MELHOR_ENVIO_TOKEN) {
+  console.error('Defina MELHOR_ENVIO_TOKEN no .env');
+  process.exit(1);
+}
+
+/** Melhor Envio: config */
+const ME_BASE_URL   = process.env.ME_BASE_URL || 'https://sandbox.melhorenvio.com.br'; // sandbox por padrão
+const ME_CEP_ORIGEM = (process.env.ME_CEP_ORIGEM || '13600000').replace(/\D/g, '');     // CEP de origem
+
+/** Pacote default (cm/kg) – usado se itens não tiverem dimensões/peso */
+const DEFAULT_PKG = {
+  width:  Number(process.env.ME_PKG_WIDTH)  || 20,
+  height: Number(process.env.ME_PKG_HEIGHT) || 5,
+  length: Number(process.env.ME_PKG_LENGTH) || 20,
+  weight: Number(process.env.ME_PKG_WEIGHT) || 0.3
+};
+
+/** Headers recomendados pelo Melhor Envio */
+const meHeaders = {
+  Authorization: `Bearer ${MELHOR_ENVIO_TOKEN}`,
+  Accept: 'application/json',
+  'Content-Type': 'application/json',
+  'User-Agent': 'ColorPrint/1.0 (contato@colorprint.com.br)'
+};
+
+console.log('[ME] Base:', ME_BASE_URL, '| Token set:', Boolean(MELHOR_ENVIO_TOKEN));
 
 const corsOptions = {
   origin: function(origin, callback) {
-    // Se não tem origem (ex: requisição de Postman), permite
-    if (!origin) return callback(null, true);
-
+    if (!origin) return callback(null, true); // permite Postman/sem origem
     if (allowedOrigins.indexOf(origin) !== -1) {
-      // Origem permitida
       callback(null, true);
     } else {
-      // Origem não permitida
       callback(new Error('Não permitido por CORS'));
     }
   },
@@ -53,66 +91,108 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-const accessToken = 'APP_USR-6075250848382634-062113-eadc8f1b789f83bf6d218a2c84d5a5c5-2191408844'
+const accessToken = 'APP_USR-6075250848382634-062113-eadc8f1b789f83bf6d218a2c84d5a5c5-2191408844';
 
 const { MercadoPagoConfig, Payment, Preference } = require('mercadopago');
 
 const client = new MercadoPagoConfig({
-    accessToken: accessToken,
-    options: {
-        timeout: 5000
-    }
+  accessToken: accessToken,
+  options: {
+    timeout: 5000
+  }
 });
 
-app.post('/api/frete', (req, res) => {
-  const { cepDestino, peso } = req.body;
+/* ===========================================
+   MELHOR ENVIO
+   =========================================== */
 
-  // Normalização do CEP (pega só números)
-  const cep = (cepDestino || '').replace(/\D/g, '');
+// Ping – verifica token/ambiente
+app.get('/api/melhor-envio/ping', async (req, res) => {
+  try {
+    const { data } = await axios.get(`${ME_BASE_URL}/api/v2/me`, { headers: meHeaders });
+    res.json({ ok: true, me: data });
+  } catch (err) {
+    console.error('Ping ME erro:', err?.response?.data || err.message);
+    res.status(err?.response?.status || 500).json(err?.response?.data || { error: 'Falha no ping' });
+  }
+});
 
-  // Regras de frete mock (simples por região)
-  let fretes = [
-    {
-      id: '1',
-      name: 'SEDEX',
-      price: '27.50',
-      delivery_time: { days: 2, working_days: true, estimated_date: '2025-08-09' },
-      company: { name: 'Correios' },
-      error: ''
-    },
-    {
-      id: '2',
-      name: 'PAC',
-      price: '18.90',
-      delivery_time: { days: 5, working_days: true, estimated_date: '2025-08-12' },
-      company: { name: 'Correios' },
-      error: ''
+// Cálculo de frete via Melhor Envio
+app.post('/api/frete-melhor-envio', async (req, res) => {
+  try {
+    if (!MELHOR_ENVIO_TOKEN) {
+      return res.status(500).json({ error: 'Token do Melhor Envio não configurado.' });
     }
-  ];
 
-  // Exemplo de ajuste simples por região
-  if (cep.startsWith('1')) { // Sudeste (ex: SP)
-    fretes[0].price = '21.00';
-    fretes[0].delivery_time.days = 3;
-    fretes[1].price = '15.00';
-    fretes[1].delivery_time.days = 4;
+    const cepDestino = String(req.body.cepDestino || '').replace(/\D/g, '');
+    const items = Array.isArray(req.body.items) ? req.body.items : [];
+
+    if (!cepDestino || cepDestino.length < 8) {
+      return res.status(400).json({ error: 'CEP de destino inválido.' });
+    }
+
+    // Monta "products" a partir do carrinho; se não vier nada, usa pacote default
+    const products = items.map((it, idx) => ({
+      id: String(it.id || it.id_produto || idx + 1),
+      width:  numOrNull(it.width)  ?? DEFAULT_PKG.width,
+      height: numOrNull(it.height) ?? DEFAULT_PKG.height,
+      length: numOrNull(it.length) ?? DEFAULT_PKG.length,
+      weight: numOrNull(it.weight) ?? DEFAULT_PKG.weight,
+      quantity: Number(it.quantity ?? it.quantidade) || 1
+    }));
+
+    const body = {
+      from: { postal_code: ME_CEP_ORIGEM },
+      to:   { postal_code: cepDestino },
+      options: { receipt: false, own_hand: false },
+      ...(products.length ? { products } : { package: DEFAULT_PKG })
+      // services: "1,2,18" // (opcional) restringir serviços
+    };
+
+    const { data } = await axios.post(
+      `${ME_BASE_URL}/api/v2/me/shipment/calculate`,
+      body,
+      { headers: meHeaders, timeout: 10000 }
+    );
+
+    // Normaliza o retorno para o front — preenche days usando delivery_range (max/min) se necessário
+    const quotes = (Array.isArray(data) ? data : []).map((q) => {
+      const dt    = q.custom_delivery_time ?? q.delivery_time ?? {};
+      const range = q.custom_delivery_range ?? q.delivery_range ?? {};
+
+      const days =
+        (typeof dt.days === 'number' ? dt.days : null) ??
+        (typeof range.max === 'number' ? range.max : null) ??
+        (typeof range.min === 'number' ? range.min : null);
+
+      return {
+        id: q.id,
+        name: q.name,
+        company: { name: q.company?.name || q.company?.alias || '' },
+        price: String(q.custom_price ?? q.price ?? ''),
+        delivery_time: {
+          days,
+          working_days: Boolean(dt.working_days ?? true),
+          estimated_date: dt.estimated_date || null
+        },
+        error: q.error || ''
+      };
+    });
+
+    res.json(quotes);
+  } catch (err) {
+    console.error('Erro Melhor Envio:', err?.response?.data || err.message);
+    const status = err?.response?.status || 500;
+    res.status(status).json(
+      err?.response?.data || { error: 'Erro ao calcular frete no Melhor Envio.' }
+    );
   }
-  if (cep.startsWith('7')) { // Norte
-    fretes[0].price = '38.00';
-    fretes[0].delivery_time.days = 5;
-    fretes[1].price = '29.00';
-    fretes[1].delivery_time.days = 8;
-  }
-  // Se quiser, adicione mais regras para outros estados
-
-  // Pode simular ajuste pelo peso também, se quiser
-  // if (peso && peso > 5) { ... }
-
-  // Envia sempre no padrão esperado pelo seu front!
-  res.json(fretes);
 });
 
 
+/* ===========================================
+   MERCADO PAGO (Checkout/PIX)
+   =========================================== */
 
 app.post('/api/checkout', async (req, res) => {
   const items = req.body.items || [];
@@ -124,7 +204,7 @@ app.post('/api/checkout', async (req, res) => {
       title: 'Frete',
       quantity: 1,
       currency_id: "BRL",
-      unit_price: Number(frete.price.replace(',', '.'))
+      unit_price: toNumber(frete.price)
     });
   }
 
@@ -134,12 +214,12 @@ app.post('/api/checkout', async (req, res) => {
     const result = await preference.create({
       body: {
         items: items.map(item => ({
-          title: item.nome 
-            ? `${item.nome}${item.tamanho ? ' (' + item.tamanho + ')' : ''}` 
+          title: item.nome
+            ? `${item.nome}${item.tamanho ? ' (' + item.tamanho + ')' : ''}`
             : item.title, // Caso seja o item de frete
           quantity: item.quantidade || item.quantity || 1,
           currency_id: "BRL",
-          unit_price: Number(item.preco || item.unit_price)
+          unit_price: toNumber(item.preco ?? item.unit_price)
         })),
         back_urls: {
           success: 'https://www.google.com/webhp?hl=pt-BR&sa=X&ved=0ahUKEwjWicSi38X2AhUtq5UCHfVhAuAQPAgI',
@@ -158,15 +238,12 @@ app.post('/api/checkout', async (req, res) => {
   }
 });
 
-
-
-
 app.post('/api/pix', async (req, res) => {
   const payment = new Payment(client);
 
   const { transaction_amount, description, payer_email } = req.body;
 
-  const formattedAmount = parseFloat(parseFloat(transaction_amount).toFixed(2));
+  const formattedAmount = toNumber(transaction_amount);
 
   const body = {
     transaction_amount: formattedAmount,
@@ -192,9 +269,7 @@ app.post('/api/pix', async (req, res) => {
 
   console.log('ID do pagamento criado:', result.id);
   res.json(paymentInfo);
-  
 });
-
 
 app.get('/api/pix/status/:id', async (req, res) => {
   const paymentId = req.params.id;
@@ -215,9 +290,9 @@ app.get('/api/pix/status/:id', async (req, res) => {
     // Extrair apenas status
     const status = data.status;
     const statusDetail = data.status_detail;
-    
-    res.status(200).json({ status});
-  
+
+    res.status(200).json({ status });
+
   } catch (error) {
     console.error('Erro ao consultar pagamento:', error.message);
     res.status(500).json({ error: error.message });
@@ -225,10 +300,14 @@ app.get('/api/pix/status/:id', async (req, res) => {
 
 });
 
+/* ===========================================
+   UPLOADS / BANNERS
+   =========================================== */
+
 // Configuração do multer para o upload de imagens
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, './uploads/produtos'); 
+    cb(null, './uploads/produtos');
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname); // Pega a extensão do arquivo
@@ -242,7 +321,6 @@ const upload = multer({ storage: storage });
 // Middleware para servir arquivos estáticos da pasta 'uploads'
 app.use('/uploads/produtos', express.static(path.join(__dirname, 'uploads/produtos')));
 app.use('/uploads/imagens', express.static(path.join(__dirname, 'uploads/imagens')));
-
 
 // === BANNERS por arquivos fixos (B1..B4) ===
 const ensureDir = (dirPath) => { try { fs.mkdirSync(dirPath, { recursive: true }); } catch (_) {} };
@@ -328,7 +406,9 @@ app.delete('/api/banner-files/:slot', (req, res) => {
   }
 });
 
-
+/* ===========================================
+   AUTENTICAÇÃO / CATEGORIAS / PRODUTOS / VARIAÇÕES / VENDAS
+   =========================================== */
 
 // Rota de login
 app.post('/api/login', async (req, res) => {
@@ -370,11 +450,10 @@ app.post('/api/login', async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('Erro no login:', err); // <-- já tem isso
+    console.error('Erro no login:', err);
     res.status(500).json({ msg: 'Erro interno do servidor', erro: err.message });
   }
 });
-
 
 // Endpoint para listar categorias e seus produtos
 app.get('/api/categorias-com-produtos', async (req, res) => {
@@ -432,77 +511,70 @@ app.get('/api/categorias', (req, res) => {
   });
 });
 
-
 app.post('/api/produtos', upload.single('imagem'), async (req, res) => {
   try {
-    // Extrai os dados do FormData, incluindo descrição
     const { nome, preco, destaque, estoque, id_categoria, descricao } = req.body;
     const imagem = req.file?.filename || '';
 
-    // Validação mínima (imagem é obrigatória na sua tabela)
+    // novas dimensões/peso (vêm como string no multipart)
+    const width  = numOrNull(req.body.width);
+    const height = numOrNull(req.body.height);
+    const length = numOrNull(req.body.length);
+    const weight = numOrNull(req.body.weight);
+
     if (!imagem) {
       return res.status(400).json({ erro: 'A imagem é obrigatória' });
     }
 
-    // Insere no banco incluindo descrição
     const [result] = await db.promise().query(
       `INSERT INTO produtos 
-       (nome, descricao, preco, imagem, destaque, estoque, id_categoria) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       (nome, descricao, preco, imagem, destaque, estoque, id_categoria, width, height, length, weight) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         nome,
-        descricao || '',            // <-- adiciona descrição aqui
-        parseFloat(preco), 
+        descricao || '',
+        toNumber(preco, 0),
         imagem,
         destaque === '1' ? 1 : 0,
         parseInt(estoque) || 0,
-        id_categoria || null
+        id_categoria || null,
+        width, height, length, weight
       ]
     );
 
-    res.json({ 
-      success: true,
-      id: result.insertId 
-    });
-
+    res.json({ success: true, id: result.insertId });
   } catch (error) {
     console.error('Erro no backend:', error);
-    res.status(500).json({ 
-      success: false,
-      erro: 'Erro interno' 
-    });
+    res.status(500).json({ success: false, erro: 'Erro interno' });
   }
 });
-
 
 app.put('/api/produtos/:id', upload.single('imagem'), async (req, res) => {
   const id = req.params.id;
   const { nome, preco, destaque, estoque, id_categoria, descricao } = req.body;
 
   try {
-    // Verifica se o produto existe (com base no campo id, não id_produto)
     const [produtoAtual] = await db.promise().query('SELECT * FROM produtos WHERE id = ?', [id]);
-
     if (produtoAtual.length === 0) {
       return res.status(404).json({ erro: 'Produto não encontrado' });
     }
 
     let imagem = produtoAtual[0].imagem;
 
-    // Se uma nova imagem foi enviada, substitui a antiga
     if (req.file) {
       imagem = req.file.filename;
-
-      // Apaga a imagem antiga (se existir)
       if (produtoAtual[0].imagem) {
         const caminhoImagem = path.join(__dirname, 'uploads/produtos', produtoAtual[0].imagem);
-        if (fs.existsSync(caminhoImagem)) {
-          fs.unlinkSync(caminhoImagem);
-        }
+        if (fs.existsSync(caminhoImagem)) fs.unlinkSync(caminhoImagem);
       }
     }
 
-    // Atualiza os dados no banco
+    // novas dimensões/peso (podem vir vazias -> null)
+    const width  = numOrNull(req.body.width);
+    const height = numOrNull(req.body.height);
+    const length = numOrNull(req.body.length);
+    const weight = numOrNull(req.body.weight);
+
     await db.promise().query(
       `UPDATE produtos SET 
         nome = ?, 
@@ -511,28 +583,31 @@ app.put('/api/produtos/:id', upload.single('imagem'), async (req, res) => {
         imagem = ?, 
         destaque = ?, 
         estoque = ?, 
-        id_categoria = ?
+        id_categoria = ?,
+        width  = ?,
+        height = ?,
+        length = ?,
+        weight = ?
       WHERE id = ?`,
       [
         nome,
         descricao || '',
-        parseFloat(preco),
+        toNumber(preco, 0),
         imagem,
         destaque === '1' ? 1 : 0,
         parseInt(estoque) || 0,
         id_categoria || null,
+        width, height, length, weight,
         id
       ]
     );
 
     res.json({ success: true, mensagem: 'Produto atualizado com sucesso!' });
-
   } catch (error) {
     console.error('Erro ao atualizar produto:', error);
     res.status(500).json({ erro: 'Erro interno ao atualizar o produto.' });
   }
 });
-
 
 app.delete('/api/produtos/:id', async (req, res) => {
   const id = req.params.id;
@@ -566,7 +641,6 @@ app.delete('/api/produtos/:id', async (req, res) => {
   }
 });
 
-
 // Criar nova categoria
 app.post('/api/categorias', async (req, res) => {
   const { nome, descricao, ativo } = req.body;
@@ -587,7 +661,6 @@ app.post('/api/categorias', async (req, res) => {
   }
 });
 
-
 // Rota para listar todas as categorias (ativas e inativas)
 app.get('/api/categorias/todas', async (req, res) => {
   try {
@@ -598,7 +671,6 @@ app.get('/api/categorias/todas', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao buscar categorias.' });
   }
 });
-
 
 // Atualizar categoria existente
 app.put('/api/categorias/:id', async (req, res) => {
@@ -630,7 +702,7 @@ app.delete('/api/categorias/:id', async (req, res) => {
   }
 });
 
-// ROTAS PARA VARIAÇÕES DE PRODUTO
+/* VARIAÇÕES */
 
 // Listar variações de um produto
 app.get('/api/produtos/:id/variacoes', async (req, res) => {
@@ -640,9 +712,6 @@ app.get('/api/produtos/:id/variacoes', async (req, res) => {
       'SELECT * FROM variacoes_produto WHERE id_produto = ?',
       [id]
     );
-
-    console.log([rows],'Alguma merda vinda do backend')
-    console.log([id],'ID DO PRODUTO NO BACKEND')
     res.json(rows);
   } catch (error) {
     console.error('Erro ao buscar variações:', error);
@@ -702,6 +771,7 @@ app.delete('/api/variacoes/:id', async (req, res) => {
   }
 });
 
+/* VENDAS */
 
 app.post('/api/vendas', async (req, res) => {
   const {
@@ -724,7 +794,7 @@ app.post('/api/vendas', async (req, res) => {
         cidade,
         JSON.stringify(items),
         frete?.name || null,
-        frete?.price ? parseFloat(frete.price.replace(',', '.')) : null,
+        frete?.price ? toNumber(frete.price, null) : null,
         'PENDENTE'
       ]
     );
@@ -734,8 +804,6 @@ app.post('/api/vendas', async (req, res) => {
     res.status(500).json({ success: false, erro: 'Erro ao salvar venda' });
   }
 });
-
-
 
 app.get('/api/vendas', async (req, res) => {
   try {
@@ -750,7 +818,6 @@ app.get('/api/vendas', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao buscar vendas' });
   }
 });
-
 
 // Atualizar status da venda
 app.put('/api/vendas/:id', async (req, res) => {
@@ -788,7 +855,6 @@ app.get('/api/produto-destaque', async (req, res) => {
   }
 });
 
-
 // Deletar venda
 app.delete('/api/vendas/:id', async (req, res) => {
   const { id } = req.params;
@@ -800,7 +866,6 @@ app.delete('/api/vendas/:id', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao deletar venda.' });
   }
 });
-
 
 const ip = '0.0.0.0'; // Permite conexões externas
 

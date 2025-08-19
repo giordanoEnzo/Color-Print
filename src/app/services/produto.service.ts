@@ -3,84 +3,122 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class ProdutoService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = (environment.apiUrl || '').replace(/\/$/, '');
 
   constructor(private http: HttpClient) {}
 
-  // Método para obter todos os produtos
-  getProdutos(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/produtos`);
+  /** Helper para montar o FormData com chaves EXATAS do backend e números normalizados */
+  buildFormData(prod: any, imagem: File | null): FormData {
+    const fd = new FormData();
+
+    // campos básicos
+    fd.append('nome', prod.nome ?? '');
+    fd.append('descricao', prod.descricao ?? '');
+    fd.append('preco', this.numStr(prod.preco));
+    fd.append('estoque', this.numStr(prod.estoque ?? 0, 0));
+    fd.append('destaque', prod.destaque ? '1' : '0');
+    fd.append('id_categoria', prod.id_categoria != null ? String(prod.id_categoria) : '');
+
+    // dimensões/peso — nomes EXATOS da sua tabela/servidor
+    if (this.hasValue(prod.width))  fd.append('width',  this.numStr(prod.width));
+    if (this.hasValue(prod.height)) fd.append('height', this.numStr(prod.height));
+    if (this.hasValue(prod.length)) fd.append('length', this.numStr(prod.length));
+    if (this.hasValue(prod.weight)) fd.append('weight', this.numStr(prod.weight));
+
+    if (imagem) fd.append('imagem', imagem);
+    return fd;
   }
 
-  // Método para obter um produto específico
+  private hasValue(v: any): boolean {
+    return v !== null && v !== undefined && String(v) !== '';
+  }
+
+  private numStr(v: any, fallback: number | null = null): string {
+    if (!this.hasValue(v)) {
+      return fallback !== null ? String(fallback) : '';
+    }
+    const n = Number(String(v).replace(',', '.'));
+    return Number.isFinite(n) ? String(n) : (fallback !== null ? String(fallback) : '');
+  }
+
+  /* =========================
+     PRODUTOS / CATEGORIAS
+     ========================= */
+  getProdutos(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/produtos`);
+  }
+
   getProdutoById(id: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/produtos/${id}`);
+    return this.http.get<any>(`${this.apiUrl}/produtos/${id}`);
   }
 
-  // Buscar categorias (sem produtos)
   getCategorias(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/categorias`);
   }
 
-  // Buscar produtos por categoria
-  getProdutosPorCategoria(categoriaId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/produtos/categoria/${categoriaId}`);
-  }
-
-  // Adicionar novo produto (com imagem)
-  addProduto(produto: FormData): Observable<any> {
-    return this.http.post(`${this.apiUrl}/produtos`, produto);
-  }
-
-  // Atualizar produto existente
-  updateProduto(id: string, produto: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/produtos/${id}`, produto);
-  }
-
-  // Deletar produto
-  deleteProduto(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/produtos/${id}`);
-  }
-
-  // Upload da imagem (caso use endpoint separado)
-  uploadImagem(imagem: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('imagem', imagem, imagem.name);
-    return this.http.post(`${this.apiUrl}/upload`, formData);
-  }
-
-  // Buscar usuários (opcional)
-  getUsuarios(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/usuarios`);
-  }
-
-  // Buscar categorias com seus produtos
+  /** << ESTE É O MÉTODO QUE FALTAVA >> */
   getCategoriasComProdutos(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/categorias-com-produtos`);
   }
 
-  // CRUD de variações de produtos
+  /** (Opcional – seu backend atual não tem essa rota; mantenha só se usar) */
+  getProdutosPorCategoria(categoriaId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/produtos/categoria/${categoriaId}`);
+  }
+
+  addProduto(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/produtos`, formData);
+  }
+
+  updateProduto(id: string, formData: FormData): Observable<any> {
+    return this.http.put(`${this.apiUrl}/produtos/${id}`, formData);
+  }
+
+  deleteProduto(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/produtos/${id}`);
+  }
+
+  /* =========================
+     UPLOAD / USUÁRIOS
+     ========================= */
+  uploadImagem(imagem: File): Observable<any> {
+    const fd = new FormData();
+    fd.append('imagem', imagem, imagem.name);
+    return this.http.post(`${this.apiUrl}/upload`, fd);
+  }
+
+  getUsuarios(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/usuarios`);
+  }
+
+  /* =========================
+     VARIAÇÕES
+     ========================= */
   addVariacao(variacao: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/variacoes`, variacao);
   }
+
   getTodasVariacoes(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/variacoes`);
   }
+
   getVariacoesPorProduto(id_produto: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/produtos/${id_produto}/variacoes`);
   }
+
   updateVariacao(id_variacao: number, variacao: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/variacoes/${id_variacao}`, variacao);
   }
+
   deleteVariacao(id_variacao: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/variacoes/${id_variacao}`);
   }
 
-  // Buscar o produto em destaque
+  /* =========================
+     DESTAQUE
+     ========================= */
   getProdutoDestaque(): Observable<any> {
     return this.http.get(`${this.apiUrl}/produto-destaque`);
   }

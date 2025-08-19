@@ -3,17 +3,26 @@ import { ProdutoService } from 'src/app/services/produto.service';
 import { Produto } from 'src/app/interfaces/produto.interface';
 import { ToastrService } from 'ngx-toastr';
 
+// Produto + dimensões/peso usados no frete
+type ProdutoDim = Produto & {
+  width?: number | null;
+  height?: number | null;
+  length?: number | null;
+  weight?: number | null;
+  variacoes?: any[];
+};
+
 @Component({
   selector: 'app-tbl-produtos',
   templateUrl: './tbl-produtos.component.html',
   styleUrls: ['./tbl-produtos.component.scss'],
 })
 export class TblProdutosComponent implements OnInit {
-  produtos: Produto[] = [];
+  produtos: ProdutoDim[] = [];
   categorias: any[] = [];
   erro: string | null = null;
 
-  novoProduto: Produto = {
+  novoProduto: ProdutoDim = {
     id_produto: 0,
     nome: '',
     descricao: '',
@@ -23,16 +32,21 @@ export class TblProdutosComponent implements OnInit {
     estoque: 0,
     id_categoria: undefined,
     destaque: false,
+    // novos
+    width: null,
+    height: null,
+    length: null,
+    weight: null,
   };
 
-  produtoEmEdicao: any = null;
+  produtoEmEdicao: ProdutoDim | null = null;
   imagemEditada: File | null = null;
 
   mostrarFormulario = false;
   currentPage: number = 1;
   itemsPerPage: number = 10;
   totalPages: number = 0;
-  produtosPaginados: Produto[] = [];
+  produtosPaginados: ProdutoDim[] = [];
   pages: number[] = [];
 
   constructor(
@@ -47,20 +61,14 @@ export class TblProdutosComponent implements OnInit {
 
   carregarCategorias(): void {
     this.produtoService.getCategorias().subscribe(
-      (categorias) => {
-        this.categorias = categorias;
-      },
-      (error) => {
-        console.error('Erro ao carregar categorias:', error);
-      }
+      (categorias) => { this.categorias = categorias; },
+      (error) => { console.error('Erro ao carregar categorias:', error); }
     );
   }
 
   toggleFormulario(): void {
     this.mostrarFormulario = !this.mostrarFormulario;
-    if (!this.mostrarFormulario) {
-      this.resetarNovoProduto();
-    }
+    if (!this.mostrarFormulario) this.resetarNovoProduto();
   }
 
   resetarNovoProduto(): void {
@@ -74,15 +82,30 @@ export class TblProdutosComponent implements OnInit {
       estoque: 0,
       id_categoria: undefined,
       destaque: false,
+      width: null,
+      height: null,
+      length: null,
+      weight: null,
     };
+  }
+
+  // helper numérico (converte "10,5" -> 10.5; vazio -> null)
+  private toNum(v: any): number | null {
+    if (v === '' || v === null || v === undefined) return null;
+    const n = Number(String(v).replace(',', '.'));
+    return Number.isFinite(n) ? n : null;
   }
 
   carregarProdutos(): void {
     this.produtoService.getProdutos().subscribe(
       (response: any[]) => {
-        this.produtos = response.map(produto => ({
+        this.produtos = response.map((produto) => ({
           ...produto,
-          id_produto: produto.id // mapeamento automático, opcional
+          id_produto: produto.id, // compatibilidade
+          width:  this.toNum(produto.width),
+          height: this.toNum(produto.height),
+          length: this.toNum(produto.length),
+          weight: this.toNum(produto.weight),
         }));
         this.atualizarPaginacao();
         this.toastr.success('Produtos carregados com sucesso!', 'Sucesso');
@@ -111,27 +134,15 @@ export class TblProdutosComponent implements OnInit {
   }
 
   adicionarProduto(): void {
-    if (!this.validarProduto()) return;
+    if (!this.validarProduto(this.novoProduto, true)) return;
 
-    // Se marcado como destaque, remove destaque dos outros no front
-    if (this.novoProduto.destaque) {
-      this.desmarcarTodosDestaquesMenosAtual();
-    }
+    if (this.novoProduto.destaque) this.desmarcarTodosDestaquesMenosAtual();
 
-    const formData = new FormData();
-    formData.append('nome', this.novoProduto.nome);
-    formData.append('descricao', this.novoProduto.descricao || '');
-    formData.append('preco', this.novoProduto.preco.toString());
-    formData.append('estoque', this.novoProduto.estoque?.toString() || '0');
-    formData.append('destaque', this.novoProduto.destaque ? '1' : '0');
-    formData.append('id_categoria', this.novoProduto.id_categoria?.toString() || '');
+    // usa o helper do service para normalizar vírgula → ponto e chaves corretas
+    const fd = this.produtoService.buildFormData(this.novoProduto, this.novoProduto.imagem as File | null);
 
-    if (this.novoProduto.imagem) {
-      formData.append('imagem', this.novoProduto.imagem);
-    }
-
-    this.produtoService.addProduto(formData).subscribe({
-      next: (res) => {
+    this.produtoService.addProduto(fd).subscribe({
+      next: () => {
         this.toastr.success('Produto cadastrado com sucesso!', 'Sucesso');
         this.carregarProdutos();
         this.toggleFormulario();
@@ -143,18 +154,25 @@ export class TblProdutosComponent implements OnInit {
     });
   }
 
-  validarProduto(): boolean {
-    if (!this.novoProduto.nome) {
+  validarProduto(p: ProdutoDim, exigirImagem = false): boolean {
+    if (!p.nome) {
       this.toastr.warning('O nome do produto é obrigatório', 'Atenção');
       return false;
     }
-    if (!this.novoProduto.preco || this.novoProduto.preco <= 0) {
+    if (p.preco == null || Number(String(p.preco).toString().replace(',', '.')) <= 0) {
       this.toastr.warning('O preço deve ser maior que zero', 'Atenção');
       return false;
     }
-    if (!this.novoProduto.imagem) {
+    if (exigirImagem && !p.imagem) {
       this.toastr.warning('Selecione uma imagem para o produto', 'Atenção');
       return false;
+    }
+    for (const v of [p.width, p.height, p.length, p.weight]) {
+      if (v != null && Number(v) < 0) {
+        const msg = 'Dimensões e peso não podem ser negativos';
+        this.toastr.warning(msg, 'Atenção');
+        return false;
+      }
     }
     return true;
   }
@@ -179,16 +197,16 @@ export class TblProdutosComponent implements OnInit {
     this.produtoEmEdicao = {
       ...produto,
       id_produto: produto.id,
-      variacoes: []
-    };
+      variacoes: [],
+      width:  this.toNum(produto.width),
+      height: this.toNum(produto.height),
+      length: this.toNum(produto.length),
+      weight: this.toNum(produto.weight),
+    } as ProdutoDim;
 
     this.produtoService.getVariacoesPorProduto(produto.id).subscribe({
-      next: (res) => {
-        this.produtoEmEdicao.variacoes = res;
-      },
-      error: () => {
-        this.produtoEmEdicao.variacoes = [];
-      }
+      next: (res) => { (this.produtoEmEdicao as any).variacoes = res; },
+      error: () => { (this.produtoEmEdicao as any).variacoes = []; }
     });
 
     this.imagemEditada = null;
@@ -196,72 +214,48 @@ export class TblProdutosComponent implements OnInit {
 
   adicionarVariacao(): void {
     if (this.produtoEmEdicao) {
-      this.produtoEmEdicao.variacoes.push({ descricao_opcao: '', preco_adicional: 0 });
+      (this.produtoEmEdicao as any).variacoes.push({ descricao_opcao: '', preco_adicional: 0 });
     }
   }
 
   removerVariacao(index: number): void {
-    if (this.produtoEmEdicao) {
-      const variacao = this.produtoEmEdicao.variacoes[index];
-      if (variacao.id_variacao) {
-        this.produtoService.deleteVariacao(variacao.id_variacao).subscribe({
-          next: () => {
-            this.produtoEmEdicao.variacoes.splice(index, 1);
-            this.toastr.success('Variação excluída com sucesso!', 'Sucesso');
-          },
-          error: () => {
-            this.toastr.error('Erro ao excluir variação', 'Erro');
-          }
-        });
-      } else {
-        this.produtoEmEdicao.variacoes.splice(index, 1);
-      }
+    if (!this.produtoEmEdicao) return;
+    const variacoes = (this.produtoEmEdicao as any).variacoes || [];
+    const variacao = variacoes[index];
+    if (variacao?.id_variacao) {
+      this.produtoService.deleteVariacao(variacao.id_variacao).subscribe({
+        next: () => {
+          variacoes.splice(index, 1);
+          this.toastr.success('Variação excluída com sucesso!', 'Sucesso');
+        },
+        error: () => {
+          this.toastr.error('Erro ao excluir variação', 'Erro');
+        }
+      });
+    } else {
+      variacoes.splice(index, 1);
     }
   }
 
   salvarEdicao(): void {
     if (!this.produtoEmEdicao) return;
+    if (!this.validarProduto(this.produtoEmEdicao)) return;
 
-    // Se marcado como destaque, remove destaque dos outros no front
     if (this.produtoEmEdicao.destaque) {
       this.desmarcarTodosDestaquesMenosAtual(this.produtoEmEdicao.id_produto);
     }
 
-    const {
-      id_produto,
-      nome,
-      descricao,
-      preco,
-      estoque,
-      destaque,
-      id_categoria,
-      variacoes
-    } = this.produtoEmEdicao;
+    // monta o FormData pelo helper (faz vírgula→ponto e chaves corretas)
+    const fd = this.produtoService.buildFormData(this.produtoEmEdicao, this.imagemEditada);
 
-    if (!nome || preco == null || estoque == null || id_categoria == null) {
-      this.toastr.warning('Preencha todos os campos obrigatórios antes de salvar.', 'Atenção');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('nome', nome);
-    formData.append('descricao', descricao || '');
-    formData.append('preco', preco.toString());
-    formData.append('estoque', estoque.toString());
-    formData.append('destaque', destaque ? '1' : '0');
-    formData.append('id_categoria', id_categoria.toString());
-
-    if (this.imagemEditada) {
-      formData.append('imagem', this.imagemEditada);
-    }
-
-    this.produtoService.updateProduto(id_produto.toString(), formData).subscribe({
+    this.produtoService.updateProduto(String(this.produtoEmEdicao.id_produto), fd).subscribe({
       next: () => {
-        variacoes.forEach(variacao => {
-          if (variacao.id_variacao) {
-            this.produtoService.updateVariacao(variacao.id_variacao, variacao).subscribe();
+        const variacoes = (this.produtoEmEdicao as any).variacoes || [];
+        variacoes.forEach((v: any) => {
+          if (v.id_variacao) {
+            this.produtoService.updateVariacao(v.id_variacao, v).subscribe();
           } else {
-            this.produtoService.addVariacao({ ...variacao, id_produto }).subscribe();
+            this.produtoService.addVariacao({ ...v, id_produto: this.produtoEmEdicao!.id_produto }).subscribe();
           }
         });
 
@@ -299,7 +293,7 @@ export class TblProdutosComponent implements OnInit {
       if (target === 'novoProduto') {
         this.novoProduto.imagemUrl = e.target.result;
       } else if (this.produtoEmEdicao) {
-        this.produtoEmEdicao.imagemUrl = e.target.result;
+        this.produtoEmEdicao.imagemUrl = e.target.result as string;
       }
     };
     reader.readAsDataURL(file);
@@ -310,22 +304,14 @@ export class TblProdutosComponent implements OnInit {
     this.imagemEditada = null;
   }
 
-  // --- DESTAQUE: Controle só um ativo ---
+  // destaque único
   aoMarcarDestaqueNovoProduto() {
-    if (this.novoProduto.destaque) {
-      this.desmarcarTodosDestaquesMenosAtual();
-    }
+    if (this.novoProduto.destaque) this.desmarcarTodosDestaquesMenosAtual();
   }
-
   aoMarcarDestaqueEdicao() {
-    if (this.produtoEmEdicao.destaque) {
-      this.desmarcarTodosDestaquesMenosAtual(this.produtoEmEdicao.id_produto);
-    }
+    if (this.produtoEmEdicao?.destaque) this.desmarcarTodosDestaquesMenosAtual(this.produtoEmEdicao.id_produto);
   }
-
   desmarcarTodosDestaquesMenosAtual(idAtual: number = 0) {
-    this.produtos.forEach(p => {
-      if (p.id_produto !== idAtual) p.destaque = false;
-    });
+    this.produtos.forEach(p => { if (p.id_produto !== idAtual) p.destaque = false; });
   }
 }
