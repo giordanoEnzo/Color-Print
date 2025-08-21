@@ -195,46 +195,99 @@ app.post('/api/frete-melhor-envio', async (req, res) => {
    =========================================== */
 
 app.post('/api/checkout', async (req, res) => {
-  const items = req.body.items || [];
-  const frete = req.body.frete; // Vem do front
-
-  // Adiciona o frete como item extra se existir
-  if (frete && frete.price) {
-    items.push({
-      title: 'Frete',
-      quantity: 1,
-      currency_id: "BRL",
-      unit_price: toNumber(frete.price)
-    });
-  }
-
   try {
-    const preference = new Preference(client);
+    const { nome, email, telefone, endereco, cep, logradouro, cidade, estado_uf, items, frete, total } = req.body;
 
-    const result = await preference.create({
-      body: {
-        items: items.map(item => ({
-          title: item.nome
-            ? `${item.nome}${item.tamanho ? ' (' + item.tamanho + ')' : ''}`
-            : item.title, // Caso seja o item de frete
-          quantity: item.quantidade || item.quantity || 1,
-          currency_id: "BRL",
-          unit_price: toNumber(item.preco ?? item.unit_price)
-        })),
-        back_urls: {
-          success: 'https://www.google.com/webhp?hl=pt-BR&sa=X&ved=0ahUKEwjWicSi38X2AhUtq5UCHfVhAuAQPAgI',
-          failure: 'https://www.google.com/webhp?hl=pt-BR&sa=X&ved=0ahUKEwjWicSi38X2AhUtq5UCHfVhAuAQPAgI',
-          pending: 'https://www.google.com/webhp?hl=pt-BR&sa=X&ved=0ahUKEwjWicSi38X2AhUtq5UCHfVhAuAQPAgI'
-        },
-        auto_return: "approved"
+    const preference = {
+      items: [
+        {
+          title: "Compra no E-commerce",
+          unit_price: Number(total),
+          quantity: 1,
+        }
+      ],
+      payer: {
+        name: nome,
+        email: email,
+        phone: { number: telefone },
+        address: {
+          street_name: logradouro,
+          zip_code: cep
+        }
+      },
+      back_urls: {
+        success: "https://colorprintdigital.com.br/home",   // ✅ ajuste para sua URL do Angular
+        failure: "https://colorprintdigital.com.br/home",
+        pending: "https://colorprintdigital.com.br/home"
+      },
+      auto_return: "approved", // só funciona se back_urls.success existir
+      notification_url: "http://localhost:4200/api/webhook/mercadopago", // ✅ URL do webhook
+      metadata: {
+        nome,
+        email,
+        telefone,
+        endereco,
+        cep,
+        logradouro,
+        cidade,
+        estado_uf,
+        total,
+        items,
+        frete
       }
-    });
+    };
 
-    return res.json({ init_point: result.init_point });
+    const preferenceResponse = await new Preference(client).create({ body: preference });
+    res.json({ init_point: preferenceResponse.init_point });
 
   } catch (error) {
-    console.error('Erro ao criar preferência:', error);
-    return res.status(500).json({ error: 'Erro ao criar preferência de pagamento.' });
+    console.error("Erro ao criar checkout:", error);
+    res.status(500).json({ error: "Erro ao criar checkout" });
+  }
+});
+
+
+// webhook mercado pago
+app.post('/api/webhook/mercadopago', async (req, res) => {
+  try {
+    const paymentId = req.body.data?.id;
+    if (!paymentId) return res.sendStatus(400);
+
+    const payment = new Payment(client);
+    const result = await payment.get({ id: paymentId });
+
+    if (result.status === "approved") {
+      const meta = result.metadata;
+
+      await db.promise().query(
+        `INSERT INTO vendas 
+         (nome_cliente, email_cliente, telefone_cliente, endereco_cliente, cep_cliente, logradouro, cidade, estado_uf, total_compra, itens_pedido, frete_nome, frete_valor, status_pedido, data_pedido)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'FINALIZADA', NOW())`,
+        [
+          meta.nome,
+          meta.email,
+          meta.telefone,
+          meta.endereco,
+          meta.cep,
+          meta.logradouro,
+          meta.cidade,
+          meta.estado_uf,
+          Number(meta.total), // ✅ corrigido
+          JSON.stringify(meta.items),
+          meta.frete?.name || null,
+          meta.frete?.price ? Number(meta.frete.price) : null
+        ]
+      );
+
+      console.log("💰 Venda registrada no banco (pagamento aprovado):", meta.nome, meta.total);
+    } else {
+      console.log("⚠️ Pagamento não aprovado:", result.status);
+    }
+
+    res.sendStatus(200);
+  } catch (err) {
+    console.error("Erro no webhook Mercado Pago:", err);
+    res.sendStatus(500);
   }
 });
 

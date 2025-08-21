@@ -91,77 +91,73 @@ export class CheckoutComponent implements OnInit {
   }
 
   finalizarCompra(): void {
-    const nome = (document.getElementById('nome') as HTMLInputElement)?.value?.trim() || '';
-    const email = (document.getElementById('email') as HTMLInputElement)?.value?.trim() || '';
-    const telefone = (document.getElementById('telefone') as HTMLInputElement)?.value?.trim() || '';
-    const endereco = (document.getElementById('endereco') as HTMLInputElement)?.value?.trim() || '';
-    const cepRaw = (document.getElementById('cep') as HTMLInputElement)?.value?.trim() || '';
-    const cep = cepRaw.replace(/\D/g, ''); // remove máscara
-    const logradouro = (document.getElementById('logradouro') as HTMLInputElement)?.value?.trim() || '';
-    const cidade = (document.getElementById('cidade') as HTMLInputElement)?.value?.trim() || '';
-    const estado_uf = (document.getElementById('estado_uf') as HTMLInputElement)?.value?.trim() || '';
+  const nome = (document.getElementById('nome') as HTMLInputElement)?.value?.trim() || '';
+  const email = (document.getElementById('email') as HTMLInputElement)?.value?.trim() || '';
+  const telefone = (document.getElementById('telefone') as HTMLInputElement)?.value?.trim() || '';
+  const endereco = (document.getElementById('endereco') as HTMLInputElement)?.value?.trim() || '';
+  const cepRaw = (document.getElementById('cep') as HTMLInputElement)?.value?.trim() || '';
+  const cep = cepRaw.replace(/\D/g, ''); // remove máscara
+  const logradouro = (document.getElementById('logradouro') as HTMLInputElement)?.value?.trim() || '';
+  const cidade = (document.getElementById('cidade') as HTMLInputElement)?.value?.trim() || '';
+  const estado_uf = (document.getElementById('estado_uf') as HTMLInputElement)?.value?.trim() || '';
 
-    console.log('[DEBUG] Dados capturados:', { nome, email, telefone, endereco, cepRaw, cep, logradouro, cidade, estado_uf });
+  // Debug
+  console.log('[DEBUG] Dados capturados:', { nome, email, telefone, endereco, cepRaw, cep, logradouro, cidade, estado_uf });
 
-    // Validação
-    if (!nome || !email || !telefone || !endereco || !cep || cep.length < 8 || !logradouro || !cidade || !estado_uf) {
-      this.toastr.error('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-
-    if (!this.freteSelecionado || this.carrinho.length === 0) {
-      this.toastr.error('Selecione o frete para continuar.');
-      return;
-    }
-
-    this.carregandoPagamento = true;
-
-    const pedido = {
-      nome,
-      email,
-      telefone,
-      endereco,
-      cep,
-      logradouro,
-      cidade,
-      estado_uf,
-      items: this.carrinho.map(item => ({
-        nome: item.nome,
-        tamanho: item.tamanho,
-        preco: this.toNum(item.preco),
-        quantidade: this.toNum(item.quantidade) || 1,
-      })),
-      frete: this.freteSelecionado,
-      total: this.obterTotalComFrete()
-    };
-
-    console.log('[DEBUG] Pedido enviado para API:', pedido);
-
-    this.http.post(`${environment.apiUrl}/vendas`, pedido).subscribe({
-      next: () => {
-        this.http.post<{ init_point: string }>(`${environment.apiUrl}/checkout`, pedido).subscribe({
-          next: (res) => {
-            this.carregandoPagamento = false;
-            if (res?.init_point) {
-              window.location.href = res.init_point;
-            } else {
-              this.toastr.error('Erro ao gerar link de pagamento.');
-            }
-          },
-          error: (err) => {
-            console.error('[DEBUG] Erro checkout:', err);
-            this.carregandoPagamento = false;
-            this.toastr.error('Erro ao finalizar compra.');
-          }
-        });
-      },
-      error: (err) => {
-        console.error('[DEBUG] Erro salvar venda:', err);
-        this.carregandoPagamento = false;
-        this.toastr.error('Erro ao registrar pedido.');
-      }
-    });
+  // Validação
+  if (!nome || !email || !telefone || !endereco || !cep || cep.length < 8 || !logradouro || !cidade || !estado_uf) {
+    this.toastr.error('Por favor, preencha todos os campos obrigatórios.');
+    return;
   }
+
+  if (!this.freteSelecionado || this.carrinho.length === 0) {
+    this.toastr.error('Selecione o frete para continuar.');
+    return;
+  }
+
+  this.carregandoPagamento = true;
+
+  // Pedido que será enviado para o backend (vai para /checkout)
+  const pedido = {
+    nome,
+    email,
+    telefone,
+    endereco,
+    cep,
+    logradouro,
+    cidade,
+    estado_uf,
+    items: this.carrinho.map(item => ({
+      nome: item.nome,
+      tamanho: item.tamanho,
+      preco: this.toNum(item.preco),
+      quantidade: this.toNum(item.quantidade) || 1,
+    })),
+    frete: this.freteSelecionado,
+    total: this.obterTotalComFrete()
+  };
+
+  console.log('[DEBUG] Pedido enviado para API/checkout:', pedido);
+
+  // Agora só cria a preferência no Mercado Pago
+  this.http.post<{ init_point: string }>(`${environment.apiUrl}/checkout`, pedido).subscribe({
+    next: (res) => {
+      this.carregandoPagamento = false;
+      if (res?.init_point) {
+        window.location.href = res.init_point; // redireciona para pagamento
+      } else {
+        this.toastr.error('Erro ao gerar link de pagamento.');
+      }
+    },
+    error: (err) => {
+      console.error('[DEBUG] Erro checkout:', err);
+      this.carregandoPagamento = false;
+      this.toastr.error('Erro ao finalizar compra.');
+    }
+  });
+}
+
+
 
 
 
