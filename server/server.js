@@ -222,7 +222,7 @@ app.post('/api/checkout', async (req, res) => {
         pending: "https://colorprintdigital.com.br/home"
       },
       auto_return: "approved", // só funciona se back_urls.success existir
-      notification_url: "http://localhost:4200/api/webhook/mercadopago", // ✅ URL do webhook
+      notification_url: "https://colorprintdigital.com.br/api/webhook/mercadopago", // ✅ URL do webhook
       metadata: {
         nome,
         email,
