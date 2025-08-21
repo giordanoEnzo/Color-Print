@@ -406,11 +406,8 @@ app.delete('/api/banner-files/:slot', (req, res) => {
   }
 });
 
-/* ===========================================
-   AUTENTICAÇÃO / CATEGORIAS / PRODUTOS / VARIAÇÕES / VENDAS
-   =========================================== */
 
-// Rota de login
+// Rota de login (sem bcrypt)
 app.post('/api/login', async (req, res) => {
   const { email, senha } = req.body;
 
@@ -419,7 +416,10 @@ app.post('/api/login', async (req, res) => {
   }
 
   try {
-    const [rows] = await db.promise().query('select * from usuarios where email = ?', [email]);
+    const [rows] = await db.promise().query(
+      'SELECT * FROM usuarios WHERE email = ?',
+      [email]
+    );
 
     if (rows.length === 0) {
       return res.status(404).json({ msg: 'Usuário não encontrado' });
@@ -427,26 +427,24 @@ app.post('/api/login', async (req, res) => {
 
     const usuario = rows[0];
 
-    const senhaCorreta = await bcrypt.compare(senha, usuario.SENHA);
-
-    if (!senhaCorreta) {
+    // 👉 comparação direta, sem hash
+    if (senha !== usuario.senha) {
       return res.status(401).json({ msg: 'Senha incorreta' });
     }
 
     const token = jwt.sign(
-      { id: usuario.ID_USUARIO, role: usuario.ROLE },
-      process.env.JWT_SECRET,
+      { id: usuario.id_usuario, role: usuario.role },
+      process.env.JWT_SECRET || 'segredo_jwt',
       { expiresIn: '8h' }
     );
 
     res.json({
       token,
       usuario: {
-        id: usuario.ID_USUARIO,
-        nome: usuario.NOME,
-        email: usuario.EMAIL,
-        id_empresa:usuario.id_empresa,
-        role: usuario.ROLE
+        id: usuario.id_usuario,
+        nome: usuario.nome,
+        email: usuario.email,
+        role: usuario.role
       }
     });
   } catch (err) {
@@ -454,6 +452,11 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ msg: 'Erro interno do servidor', erro: err.message });
   }
 });
+
+
+/* ===========================================
+   AUTENTICAÇÃO / CATEGORIAS / PRODUTOS / VARIAÇÕES / VENDAS
+   =========================================== */
 
 // Endpoint para listar categorias e seus produtos
 app.get('/api/categorias-com-produtos', async (req, res) => {

@@ -1,6 +1,7 @@
 // angular import
 import { Component, EventEmitter, Output } from '@angular/core';
 import { Location } from '@angular/common';
+import { Router } from '@angular/router';
 
 // project import
 import { NavigationItem } from '../navigation';
@@ -22,7 +23,8 @@ export class NavContentComponent {
   // constructor
   constructor(
     public nav: NavigationItem,
-    private location: Location
+    private location: Location,
+    private router: Router
   ) {
     this.windowWidth = window.innerWidth;
     this.navigation = this.nav.get();
@@ -57,5 +59,12 @@ export class NavContentComponent {
         last_parent.classList.add('active');
       }
     }
+  }
+
+  // 🔑 logout
+  logout() {
+    localStorage.removeItem('usuario');
+    localStorage.removeItem('token');
+    this.router.navigate(['/auth/login']);
   }
 }

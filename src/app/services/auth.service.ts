@@ -7,15 +7,29 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root',
 })
 export class AuthService {
-  
-  private apiUrl = environment.apiUrl; // API  NO ENVIROMENTS
+  private apiUrl = environment.apiUrl; // Definido no environments
 
   constructor(private http: HttpClient) {}
 
-  // Método para fazer login
+  // 🔑 Login
   login(email: string, senha: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, { email, senha });
   }
 
-  // Você pode adicionar outros métodos futuramente, como logout, registro, etc.
+  // 🚪 Logout
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+  }
+
+  // ✅ Verifica se existe token
+  isAuthenticated(): boolean {
+    return !!localStorage.getItem('token');
+  }
+
+  // 👤 Retorna o usuário atual
+  getUsuario(): any {
+    const user = localStorage.getItem('usuario');
+    return user ? JSON.parse(user) : null;
+  }
 }
