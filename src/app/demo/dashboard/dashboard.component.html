@@ -41,9 +41,12 @@
               <th>Telefone</th>
               <th>Endereço</th>
               <th>CEP</th>
+              <th>Estado</th>
               <th>E-mail</th>
               <th>Item</th>
-              <th>Valor</th>
+              <th>Total Compra</th>
+              <th>Frete</th> <!-- Novo -->
+              <th>Valor Frete</th> <!-- Novo -->
               <th>Data</th>
               <th>Status</th>
               <th>Ações</th>
@@ -56,6 +59,7 @@
               <td><p class="m-0">{{ venda.telefone_cliente }}</p></td>
               <td><p class="m-0">{{ venda.endereco_cliente }}</p></td>
               <td><p class="m-0">{{ venda.cep_cliente }}</p></td>
+              <td><p class="m-0">{{ venda.estado_uf }}</p></td>
               <td><p class="m-0">{{ venda.email_cliente }}</p></td>
               <td>
                 <p class="m-0">
@@ -67,7 +71,9 @@
                   </ng-container>
                 </p>
               </td>
-              <td><p class="m-0">R$ {{ venda.valor | number:'1.2-2' }}</p></td>
+              <td><p class="m-0">R$ {{ venda.total_compra | number:'1.2-2' }}</p></td>
+              <td><p class="m-0">{{ venda.frete_nome }}</p></td> <!-- Novo -->
+              <td><p class="m-0">R$ {{ venda.frete_valor | number:'1.2-2' }}</p></td> <!-- Novo -->
               <td><p class="m-0">{{ venda.data_pedido | date:'dd/MM/yyyy' }}</p></td>
               <td>
                 <h6 class="text-muted">
@@ -81,17 +87,14 @@
                 </h6>
               </td>
               <td>
-                
                 <button class="label theme-bg text-white f-12 rounded-pill" (click)="abrirModalAjuste(venda)">Ajustar</button>
                 <button class="label btn-danger text-white f-12 rounded-pill" (click)="removerVenda(venda.id_pedido)">Remover</button>
-
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      
       <!-- Paginação -->
       <div class="d-flex justify-content-center my-3">
         <nav>
@@ -114,8 +117,6 @@
     </div>
   </div>
 
-
-
   <!-- Modal de Ajuste de Pedido -->
   <div class="modal fade show" tabindex="-1" [ngStyle]="{display: mostrarModalAjuste ? 'block' : 'none'}" style="background: rgba(0,0,0,0.3);" *ngIf="pedidoSelecionado">
     <div class="modal-dialog modal-lg">
@@ -134,6 +135,26 @@
               <option value="FINALIZADA">FINALIZADA</option>
               <option value="CANCELADA">CANCELADA</option>
             </select>
+          </div>
+
+          <div class="mb-3">
+            <label>Total da Compra:</label>
+            <input class="form-control" [(ngModel)]="pedidoSelecionado.total_compra" disabled />
+          </div>
+
+          <div class="mb-3">
+            <label>Estado (UF):</label>
+            <input class="form-control" [(ngModel)]="pedidoSelecionado.estado_uf" disabled />
+          </div>
+
+          <div class="mb-3">
+            <label>Frete:</label>
+            <input class="form-control" [(ngModel)]="pedidoSelecionado.frete_nome" disabled />
+          </div>
+
+          <div class="mb-3">
+            <label>Valor do Frete:</label>
+            <input class="form-control" [(ngModel)]="pedidoSelecionado.frete_valor" disabled />
           </div>
           
           <h6>Itens do Pedido:</h6>
@@ -157,6 +178,5 @@
       </div>
     </div>
   </div>
-
 
 </div>
