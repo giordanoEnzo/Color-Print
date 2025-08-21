@@ -778,15 +778,15 @@ app.delete('/api/variacoes/:id', async (req, res) => {
 
 app.post('/api/vendas', async (req, res) => {
   const {
-    nome, email, telefone, endereco, cep, logradouro, cidade,
+    nome, email, telefone, endereco, cep, logradouro, cidade, estado_uf,
     items, frete, total
   } = req.body;
 
   try {
     const [result] = await db.promise().query(
       `INSERT INTO vendas
-        (nome_cliente, email_cliente, telefone_cliente, endereco_cliente, cep_cliente, logradouro, cidade, itens_pedido, frete_nome, frete_valor, status_pedido)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (nome_cliente, email_cliente, telefone_cliente, endereco_cliente, cep_cliente, logradouro, cidade, estado_uf, total_compra, itens_pedido, frete_nome, frete_valor, status_pedido)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         nome,
         email,
@@ -795,18 +795,23 @@ app.post('/api/vendas', async (req, res) => {
         cep,
         logradouro,
         cidade,
+        estado_uf,
+        total, // ✅ novo campo
         JSON.stringify(items),
         frete?.name || null,
-        frete?.price ? toNumber(frete.price, null) : null,
+        frete?.price ? Number(String(frete.price).replace(',', '.')) : null,
         'PENDENTE'
       ]
     );
+
     res.json({ success: true, id_pedido: result.insertId });
   } catch (err) {
     console.error('Erro ao salvar venda:', err);
     res.status(500).json({ success: false, erro: 'Erro ao salvar venda' });
   }
 });
+
+
 
 app.get('/api/vendas', async (req, res) => {
   try {
