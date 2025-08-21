@@ -111,7 +111,7 @@
             {{ variacao.descricao_opcao }}
             <br />
             <ng-container *ngIf="variacao.descricao_opcao !== 'Padrão'">
-              <strong>+ R$ {{ variacao.preco_adicional | number:'1.2-2' }}</strong>
+              <strong>R$ {{ variacao.preco_adicional | number:'1.2-2' }}</strong>
             </ng-container>
           </div>
         </div>

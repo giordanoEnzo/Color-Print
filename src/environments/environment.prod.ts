@@ -6,6 +6,3 @@ export const environment = {
   apiUrl: 'http://192.168.99.101:5000/api',     // para chamadas da API
   assetsUrl: 'http://192.168.99.101:5000'        // para imagens e arquivos estáticos
 };
-
-
-
