@@ -122,4 +122,42 @@ export class ProdutoService {
   getProdutoDestaque(): Observable<any> {
     return this.http.get(`${this.apiUrl}/produto-destaque`);
   }
+
+  /* =========================
+     ORÇAMENTO ONLINE
+  ========================= */
+  getQuoteConfig(produtoId: number) {
+    return this.http.get<{ config: any; buckets: any[] }>(`${this.apiUrl}/produtos/${produtoId}/quote-config`);
+  }
+  saveQuoteConfig(produtoId: number, payload: any) {
+    return this.http.put<{ success: boolean }>(`${this.apiUrl}/produtos/${produtoId}/quote-config`, payload);
+  }
+
+  listBuckets(produtoId: number) {
+    return this.http.get<any[]>(`${this.apiUrl}/produtos/${produtoId}/price-buckets`);
+  }
+  addBucket(produtoId: number, bucket: any) {
+    return this.http.post<{ id_bucket: number }>(`${this.apiUrl}/produtos/${produtoId}/price-buckets`, bucket);
+  }
+  updateBucket(id_bucket: number, bucket: any) {
+    return this.http.put<{ success: boolean }>(`${this.apiUrl}/price-buckets/${id_bucket}`, bucket);
+  }
+  deleteBucket(id_bucket: number) {
+    return this.http.delete<{ success: boolean }>(`${this.apiUrl}/price-buckets/${id_bucket}`);
+  }
+
+  /** Simular orçamento (para testes via admin ou no front do cliente) */
+  simularOrcamento(body: { id_produto: number; largura_cm: number; altura_cm: number; quantidade: number; }) {
+    return this.http.post<{
+      ok: boolean;
+      bucket: { id_bucket: number; label_tamanho: string; area_max_cm2: number };
+      tier_aplicado: string;
+      preco_unit: number;
+      quantidade: number;
+      total: number;
+    }>(`${this.apiUrl}/orcamento/simular`, body);
+  }
+
+
+
 }

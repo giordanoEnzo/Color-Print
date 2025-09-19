@@ -1146,3 +1146,52 @@ $transition: all 0.3s ease;
   font-style: italic;
   color: #555;
 }
+
+/* grid limpo para Altura/Largura/Quantidade */
+.dimension-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-label {
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .form-control {
+    height: 40px;
+    padding: 8px 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    font-size: 14px;
+
+    &:focus {
+      outline: none;
+      border-color: #2f80ed;
+      box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.15);
+    }
+  }
+}
+
+.orcamento-box .btn {
+  height: 44px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.simulacao-box {
+  background: #f7f9fc;
+  border: 1px solid #e8eef7;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .dimension-grid { grid-template-columns: 1fr; }
+}

@@ -68,51 +68,19 @@
             <div class="row" style="gap: 10px;">
               <div class="col" style="min-width:120px;">
                 <label for="width">Largura (cm)</label>
-                <input
-                  id="width"
-                  name="width"
-                  type="number"
-                  step="0.01"
-                  class="form-control"
-                  [(ngModel)]="novoProduto.width"
-                  placeholder="ex: 20"
-                />
+                <input id="width" name="width" type="number" step="0.01" class="form-control" [(ngModel)]="novoProduto.width" />
               </div>
               <div class="col" style="min-width:120px;">
                 <label for="height">Altura (cm)</label>
-                <input
-                  id="height"
-                  name="height"
-                  type="number"
-                  step="0.01"
-                  class="form-control"
-                  [(ngModel)]="novoProduto.height"
-                  placeholder="ex: 5"
-                />
+                <input id="height" name="height" type="number" step="0.01" class="form-control" [(ngModel)]="novoProduto.height" />
               </div>
               <div class="col" style="min-width:120px;">
                 <label for="length">Comprimento (cm)</label>
-                <input
-                  id="length"
-                  name="length"
-                  type="number"
-                  step="0.01"
-                  class="form-control"
-                  [(ngModel)]="novoProduto.length"
-                  placeholder="ex: 20"
-                />
+                <input id="length" name="length" type="number" step="0.01" class="form-control" [(ngModel)]="novoProduto.length" />
               </div>
               <div class="col" style="min-width:120px;">
                 <label for="weight">Peso (kg)</label>
-                <input
-                  id="weight"
-                  name="weight"
-                  type="number"
-                  step="0.001"
-                  class="form-control"
-                  [(ngModel)]="novoProduto.weight"
-                  placeholder="ex: 0.3"
-                />
+                <input id="weight" name="weight" type="number" step="0.001" class="form-control" [(ngModel)]="novoProduto.weight" />
               </div>
             </div>
           </div>
@@ -152,14 +120,12 @@
 <div class="modal-backdrop" *ngIf="produtoEmEdicao">
   <div class="modal-container">
     <div class="modal-content">
-      <!-- topo fixo -->
       <div class="modal-header">
         <h3>Editar Produto</h3>
         <button type="button" class="close-x" (click)="cancelarEdicao()">✖</button>
       </div>
 
       <form (ngSubmit)="salvarEdicao()" class="modal-form">
-        <!-- corpo rolável -->
         <div class="modal-scroll">
           <div class="form-group">
             <label>Nome*</label>
@@ -168,14 +134,7 @@
 
           <div class="form-group">
             <label for="descricaoEdicao">Descrição*</label>
-            <textarea
-              id="descricaoEdicao"
-              [(ngModel)]="produtoEmEdicao.descricao"
-              name="descricaoEdicao"
-              class="form-control"
-              rows="3"
-              required
-            ></textarea>
+            <textarea id="descricaoEdicao" [(ngModel)]="produtoEmEdicao.descricao" name="descricaoEdicao" class="form-control" rows="3" required></textarea>
           </div>
 
           <div class="form-group">
@@ -189,91 +148,134 @@
             <div class="row" style="gap: 10px;">
               <div class="col" style="min-width:120px;">
                 <label for="width_ed">Largura (cm)</label>
-                <input
-                  id="width_ed"
-                  name="width_ed"
-                  type="number"
-                  step="0.01"
-                  class="form-control"
-                  [(ngModel)]="produtoEmEdicao.width"
-                />
+                <input id="width_ed" name="width_ed" type="number" step="0.01" class="form-control" [(ngModel)]="produtoEmEdicao.width" />
               </div>
               <div class="col" style="min-width:120px;">
                 <label for="height_ed">Altura (cm)</label>
-                <input
-                  id="height_ed"
-                  name="height_ed"
-                  type="number"
-                  step="0.01"
-                  class="form-control"
-                  [(ngModel)]="produtoEmEdicao.height"
-                />
+                <input id="height_ed" name="height_ed" type="number" step="0.01" class="form-control" [(ngModel)]="produtoEmEdicao.height" />
               </div>
               <div class="col" style="min-width:120px;">
                 <label for="length_ed">Comprimento (cm)</label>
-                <input
-                  id="length_ed"
-                  name="length_ed"
-                  type="number"
-                  step="0.01"
-                  class="form-control"
-                  [(ngModel)]="produtoEmEdicao.length"
-                />
+                <input id="length_ed" name="length_ed" type="number" step="0.01" class="form-control" [(ngModel)]="produtoEmEdicao.length" />
               </div>
               <div class="col" style="min-width:120px;">
                 <label for="weight_ed">Peso (kg)</label>
-                <input
-                  id="weight_ed"
-                  name="weight_ed"
-                  type="number"
-                  step="0.001"
-                  class="form-control"
-                  [(ngModel)]="produtoEmEdicao.weight"
-                />
+                <input id="weight_ed" name="weight_ed" type="number" step="0.001" class="form-control" [(ngModel)]="produtoEmEdicao.weight" />
               </div>
             </div>
           </div>
           <!-- /Dimensões e Peso (EDIÇÃO) -->
 
-          <!-- Variações -->
+          <!-- ===== ORÇAMENTO ONLINE ===== -->
           <div class="form-group mt-4">
-            <label>Variações</label>
-
-            <div *ngFor="let variacao of produtoEmEdicao.variacoes; let i = index" class="d-flex gap-2 mb-2">
-              <input
-                class="form-control"
-                placeholder="Opção (Ex: P, M, G)"
-                [(ngModel)]="variacao.descricao_opcao"
-                name="opcaoEdicao{{ i }}"
-              />
-              <input
-                class="form-control"
-                type="number"
-                step="0.01"
-                placeholder="Preço adicional"
-                [(ngModel)]="variacao.preco_adicional"
-                name="precoEdicao{{ i }}"
-              />
-              <button type="button" class="btn btn-danger" (click)="removerVariacao(i)">✖</button>
+            <div class="orcamento-toggle">
+              <span>Habilitar orçamento online para este produto</span>
+              <input type="checkbox" [(ngModel)]="quoteConfig.aceita_orcamento" name="aceita_orcamento" />
             </div>
-
-            <button type="button" class="btn btn-outline-primary btn-sm" (click)="adicionarVariacao()">+ Adicionar Variação</button>
           </div>
 
-          <div class="form-group">
-            <label>Imagem</label>
-            <div class="image-preview" *ngIf="produtoEmEdicao.imagemUrl">
-              <img [src]="produtoEmEdicao.imagemUrl" alt="Preview" />
+          <div *ngIf="quoteConfig.aceita_orcamento" class="border p-3 rounded mb-3">
+            <div class="row g-2">
+              <div class="col-md-4">
+                <label>Modo de precificação</label>
+                <input class="form-control" value="Por área" disabled />
+              </div>
+
+              <div class="col-md-4">
+                <label>Unidade do preço</label>
+                <select class="form-control" [(ngModel)]="quoteConfig.preco_unidade" name="preco_unidade">
+                  <option value="CM2">cm²</option>
+                  <option value="M2">m²</option>
+                </select>
+              </div>
+
+              <div class="col-md-4 d-flex align-items-end">
+                <label class="d-flex align-items-center gap-2">
+                  <input type="checkbox" [(ngModel)]="quoteConfig.upload_obrigatorio" name="upload_obrigatorio" />
+                  Upload obrigatório (IMG/PDF)
+                </label>
+              </div>
             </div>
 
-            <label class="file-upload">
-              <input type="file" (change)="onFileSelectedEdicao($event)" />
-              <span>{{ produtoEmEdicao.imagem ? 'Alterar' : 'Selecionar' }} Arquivo</span>
-            </label>
+            <hr class="my-3" />
+
+            <!-- ====== PREÇOS POR TIER ====== -->
+            <div *ngIf="quoteConfig.preco_unidade === 'CM2'; else precosM2">
+              <h6 class="mb-2">Preços por cm²</h6>
+              <div class="row g-2">
+                <div class="col-md-3">
+                  <label>100+ un (R$/cm²)</label>
+                  <input type="number" class="form-control" step="0.0001" [(ngModel)]="quoteConfig.preco_cm2_100" name="preco_cm2_100" />
+                </div>
+                <div class="col-md-3">
+                  <label>500+ un (R$/cm²)</label>
+                  <input type="number" class="form-control" step="0.0001" [(ngModel)]="quoteConfig.preco_cm2_500" name="preco_cm2_500" />
+                </div>
+                <div class="col-md-3">
+                  <label>1000+ un (R$/cm²)</label>
+                  <input type="number" class="form-control" step="0.0001" [(ngModel)]="quoteConfig.preco_cm2_1000" name="preco_cm2_1000" />
+                </div>
+              </div>
+            </div>
+
+            <ng-template #precosM2>
+              <h6 class="mb-2">Preços por m²</h6>
+              <div class="row g-2">
+                <div class="col-md-3">
+                  <label> 100+ un (R$/m²)</label>
+                  <input type="number" class="form-control" step="0.01" [(ngModel)]="quoteConfig.preco_m2_100" name="preco_m2_100" />
+                </div>
+                <div class="col-md-3">
+                  <label>500+ un (R$/m²)</label>
+                  <input type="number" class="form-control" step="0.01" [(ngModel)]="quoteConfig.preco_m2_500" name="preco_m2_500" />
+                </div>
+                <div class="col-md-3">
+                  <label>1000+ un (R$/m²)</label>
+                  <input type="number" class="form-control" step="0.01" [(ngModel)]="quoteConfig.preco_m2_1000" name="preco_m2_1000" />
+                </div>
+              </div>
+            </ng-template>
+
+            <!-- Simulador rápido -->
+            <div class="row g-2 mt-3">
+              <div class="col-md-3">
+                <label>Largura (cm)</label>
+                <input #sL type="number" class="form-control" step="0.01" />
+              </div>
+              <div class="col-md-3">
+                <label>Altura (cm)</label>
+                <input #sA type="number" class="form-control" step="0.01" />
+              </div>
+              <div class="col-md-3">
+                <label>Quantidade</label>
+                <input #sQ type="number" class="form-control" />
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                <button type="button" class="btn btn-secondary w-100" (click)="simular(+sL.value, +sA.value, +sQ.value)">Simular</button>
+              </div>
+
+              <div class="col-md-3 d-flex align-items-end" *ngIf="simulacao">
+                <button type="button" class="btn btn-outline-danger w-100" (click)="limparSimulacao()">Limpar</button>
+              </div>
+
+              <div class="col-12 mt-2" *ngIf="simulacao">
+                <div class="small">
+                  <div>
+                    <strong>Preço por:</strong>
+                    {{ simulacao.preco_mode === 'AREA_CM2' ? 'cm²' : 'm²' }}
+                    ({{ simulacao.preco_unit | currency:'BRL' }})
+                  </div>
+                  <div><strong>Área:</strong> {{ simulacao.area_cm2 }} cm² ({{ simulacao.area_m2 }} m²)</div>
+                  <div><strong>Tier:</strong> {{ simulacao.tier }}</div>
+                  <div><strong>Unit/peça:</strong> {{ simulacao.preco_unit_item | currency:'BRL' }}</div>
+                  <div><strong>Total:</strong> {{ simulacao.total | currency:'BRL' }}</div>
+                </div>
+              </div>
+            </div>
           </div>
+          <!-- ===== /ORÇAMENTO ONLINE ===== -->
         </div>
 
-        <!-- rodapé fixo -->
         <div class="modal-actions">
           <button type="button" class="btn btn-cancel" (click)="cancelarEdicao()">Cancelar</button>
           <button type="submit" class="btn btn-save">Salvar</button>
@@ -289,11 +291,9 @@
     <li class="page-item" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
       <span class="page-link">Anterior</span>
     </li>
-
     <li class="page-item" *ngFor="let page of pages" [class.active]="page === currentPage" (click)="changePage(page)">
       <span class="page-link">{{ page }}</span>
     </li>
-
     <li class="page-item" [class.disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
       <span class="page-link">Próximo</span>
     </li>

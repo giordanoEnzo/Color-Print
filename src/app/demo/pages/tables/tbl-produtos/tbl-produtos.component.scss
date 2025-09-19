@@ -325,6 +325,63 @@
   }
 }
 
+/* ===== Toggle do orçamento ===== */
+.orcamento-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* texto à esquerda, checkbox à direita */
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
+  font-weight: 500;
+
+  /* aumenta o checkbox */
+  input[type='checkbox'] {
+    transform: scale(1.35);       /* aumenta */
+    transform-origin: center;
+    width: 20px;
+    height: 20px;
+    accent-color: #0d6efd;        /* cor (suporte moderno) */
+    cursor: pointer;
+  }
+}
+
+/* ===== Tabela de buckets ===== */
+.table-buckets {
+  th, td {
+    vertical-align: middle;
+    white-space: nowrap; /* evita quebra de título */
+  }
+
+  /* inputs da tabela: largura e legibilidade */
+  input.form-control {
+    width: 140px;       /* <— ajuste fino aqui, 140–160px */
+    min-width: 120px;
+    padding: 8px 10px;
+    font-size: 0.95rem;
+  }
+
+  /* colunas numéricas específicas (100/500/1000) podem ser ainda maiores */
+  td:nth-child(5) input,
+  td:nth-child(6) input,
+  td:nth-child(7) input {
+    width: 150px;       /* deixa os preços mais largos */
+  }
+
+  /* campo de área pode ser um pouco mais largo */
+  td:nth-child(4) input {
+    width: 160px;
+  }
+}
+
+/* Container da tabela para rolar horizontal se precisar */
+.table-responsive {
+  overflow-x: auto;
+}
+
+
 /* =========================
    Animação
    ========================= */

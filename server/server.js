@@ -14,12 +14,11 @@ const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 2000;
 
-
 /** CORS – adicione aqui as origens do seu front */
-// const allowedOrigins = [
-//   'http://localhost:4200',
-//   'http://192.168.99.103:4200'
-// ];
+const allowedOrigins = [
+  'http://localhost:4200',
+  'http://192.168.99.102:4200'
+];
 
 /** Helpers numéricos */
 function numOrNull(v) {
@@ -61,22 +60,22 @@ const meHeaders = {
 
 console.log('[ME] Base:', ME_BASE_URL, '| Token set:', Boolean(MELHOR_ENVIO_TOKEN));
 
-// const corsOptions = {
-//   origin: function(origin, callback) {
-//     if (!origin) return callback(null, true); // permite Postman/sem origem
-//     if (allowedOrigins.indexOf(origin) !== -1) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Não permitido por CORS'));
-//     }
-//   },
-//   credentials: true,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-// };
+const corsOptions = {
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // permite Postman/sem origem
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Não permitido por CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-// app.use(cors(corsOptions));
-// app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Middleware para habilitar JSON
 app.use(express.json());
@@ -928,6 +927,234 @@ app.delete('/api/vendas/:id', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao deletar venda.' });
   }
 });
+
+
+/* ===========================================
+   ORÇAMENTO ONLINE: CONFIG + MATRIZ DE PREÇOS
+   =========================================== */
+/** GET config do produto (campos do produto + buckets) */
+
+app.get('/api/produtos/:id/quote-config', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [[prod]] = await db.promise().query(
+      `SELECT id, aceita_orcamento, modo_precificacao, preco_unidade,
+              largura_min_cm, altura_min_cm, largura_max_cm, altura_max_cm, incremento_cm,
+              upload_obrigatorio,
+              preco_cm2_100, preco_cm2_500, preco_cm2_1000,
+              preco_m2_100, preco_m2_500, preco_m2_1000
+         FROM produtos WHERE id = ?`, [id]
+    );
+    if (!prod) return res.status(404).json({ erro: 'Produto não encontrado' });
+
+    const [buckets] = await db.promise().query(
+      `SELECT id_bucket, label_tamanho, area_max_cm2, preco_100, preco_500, preco_1000
+         FROM produto_preco_buckets
+        WHERE id_produto = ?
+        ORDER BY area_max_cm2 ASC`, [id]
+    );
+
+    res.json({ config: prod, buckets });
+  } catch (err) {
+    console.error('[QUOTE CONFIG][GET] Err:', err);
+    res.status(500).json({ erro: 'Erro ao buscar configuração.' });
+  }
+});
+
+/** PUT config (campos do produto + preços por área) */
+app.put('/api/produtos/:id/quote-config', async (req, res) => {
+  const { id } = req.params;
+  const {
+    aceita_orcamento,
+    modo_precificacao,
+    largura_min_cm, altura_min_cm,
+    largura_max_cm, altura_max_cm,
+    incremento_cm,
+    upload_obrigatorio,
+    preco_unidade,
+    preco_cm2_100, preco_cm2_500, preco_cm2_1000,
+    preco_m2_100, preco_m2_500, preco_m2_1000
+  } = req.body;
+
+  try {
+    await db.promise().query(
+      `UPDATE produtos SET 
+         aceita_orcamento   = ?,
+         modo_precificacao  = ?,
+         largura_min_cm     = ?,
+         altura_min_cm      = ?,
+         largura_max_cm     = ?,
+         altura_max_cm      = ?,
+         incremento_cm      = ?,
+         upload_obrigatorio = ?,
+         preco_unidade      = ?,
+         preco_cm2_100      = ?,
+         preco_cm2_500      = ?,
+         preco_cm2_1000     = ?,
+         preco_m2_100       = ?,
+         preco_m2_500       = ?,
+         preco_m2_1000      = ?
+       WHERE id = ?`,
+      [
+        aceita_orcamento ? 1 : 0,
+        modo_precificacao || 'AREA',
+        numOrNull(largura_min_cm), numOrNull(altura_min_cm),
+        numOrNull(largura_max_cm), numOrNull(altura_max_cm),
+        numOrNull(incremento_cm),
+        upload_obrigatorio ? 1 : 0,
+        preco_unidade || 'CM2',
+        numOrNull(preco_cm2_100),
+        numOrNull(preco_cm2_500),
+        numOrNull(preco_cm2_1000),
+        numOrNull(preco_m2_100),
+        numOrNull(preco_m2_500),
+        numOrNull(preco_m2_1000),
+        id
+      ]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[QUOTE CONFIG][PUT] Err:', err);
+    res.status(500).json({ erro: 'Erro ao salvar configuração.' });
+  }
+});
+
+/** LIST buckets */
+app.get('/api/produtos/:id/price-buckets', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await db.promise().query(
+      `SELECT id_bucket, label_tamanho, area_max_cm2, preco_100, preco_500, preco_1000
+         FROM produto_preco_buckets WHERE id_produto = ?
+        ORDER BY area_max_cm2 ASC`, [id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('[BUCKET][LIST] Err:', err);
+    res.status(500).json({ erro: 'Erro ao buscar buckets.' });
+  }
+});
+
+/** ADD bucket */
+app.post('/api/produtos/:id/price-buckets', async (req, res) => {
+  const { id } = req.params;
+  const { label_tamanho, area_max_cm2, preco_100, preco_500, preco_1000 } = req.body;
+
+  if (!area_max_cm2 || !preco_100 || !preco_500 || !preco_1000) {
+    return res.status(400).json({ erro: 'Campos obrigatórios: area_max_cm2, preco_100, preco_500, preco_1000' });
+  }
+
+  try {
+    const [r] = await db.promise().query(
+      `INSERT INTO produto_preco_buckets 
+         (id_produto, label_tamanho, area_max_cm2, preco_100, preco_500, preco_1000)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, label_tamanho || null, toNumber(area_max_cm2), toNumber(preco_100), toNumber(preco_500), toNumber(preco_1000)]
+    );
+    res.json({ success: true, id_bucket: r.insertId });
+  } catch (err) {
+    console.error('[BUCKET][ADD] Err:', err);
+    res.status(500).json({ erro: 'Erro ao adicionar bucket.' });
+  }
+});
+
+/** UPDATE bucket */
+app.put('/api/price-buckets/:id_bucket', async (req, res) => {
+  const { id_bucket } = req.params;
+  const { label_tamanho, area_max_cm2, preco_100, preco_500, preco_1000 } = req.body;
+
+  try {
+    await db.promise().query(
+      `UPDATE produto_preco_buckets SET
+         label_tamanho = ?,
+         area_max_cm2  = ?,
+         preco_100     = ?,
+         preco_500     = ?,
+         preco_1000    = ?
+       WHERE id_bucket = ?`,
+      [label_tamanho || null, toNumber(area_max_cm2), toNumber(preco_100), toNumber(preco_500), toNumber(preco_1000), id_bucket]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[BUCKET][UPDATE] Err:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar bucket.' });
+  }
+});
+
+/** DELETE bucket */
+app.delete('/api/price-buckets/:id_bucket', async (req, res) => {
+  const { id_bucket } = req.params;
+  try {
+    await db.promise().query('DELETE FROM produto_preco_buckets WHERE id_bucket = ?', [id_bucket]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[BUCKET][DELETE] Err:', err);
+    res.status(500).json({ erro: 'Erro ao deletar bucket.' });
+  }
+});
+
+/** SIMULAR preço: encaixe por área + tier de quantidade */
+app.post('/api/orcamento/simular', async (req, res) => {
+  try {
+    const { id_produto, largura_cm, altura_cm, quantidade } = req.body;
+
+    if (!id_produto || !largura_cm || !altura_cm || !quantidade) {
+      return res.status(400).json({ erro: 'Campos obrigatórios: id_produto, largura_cm, altura_cm, quantidade' });
+    }
+
+    const [[prod]] = await db.promise().query(
+      `SELECT aceita_orcamento, modo_precificacao, preco_unidade,
+              preco_cm2_100, preco_cm2_500, preco_cm2_1000,
+              preco_m2_100, preco_m2_500, preco_m2_1000,
+              largura_min_cm, altura_min_cm, largura_max_cm, altura_max_cm
+         FROM produtos WHERE id = ?`, [id_produto]
+    );
+    if (!prod || !prod.aceita_orcamento) return res.status(400).json({ erro: 'Produto não aceita orçamento.' });
+
+    // valida limites
+    if (prod.largura_min_cm && largura_cm < prod.largura_min_cm)  return res.status(400).json({ erro: 'Largura abaixo do mínimo.' });
+    if (prod.altura_min_cm  && altura_cm  < prod.altura_min_cm)   return res.status(400).json({ erro: 'Altura abaixo do mínimo.' });
+    if (prod.largura_max_cm && largura_cm > prod.largura_max_cm)  return res.status(400).json({ erro: 'Largura acima do máximo.' });
+    if (prod.altura_max_cm  && altura_cm  > prod.altura_max_cm)   return res.status(400).json({ erro: 'Altura acima do máximo.' });
+    if (quantidade < 100) return res.status(400).json({ erro: 'Quantidade mínima é 100.' });
+
+    const area_cm2 = Number(largura_cm) * Number(altura_cm);
+    const area_m2 = area_cm2 / 10000;
+
+    let preco_unit = null;
+    if (prod.modo_precificacao === 'AREA') {
+      if (prod.preco_unidade === 'CM2') {
+        if (quantidade >= 1000)      preco_unit = Number(prod.preco_cm2_1000);
+        else if (quantidade >= 500)  preco_unit = Number(prod.preco_cm2_500);
+        else                         preco_unit = Number(prod.preco_cm2_100);
+      } else {
+        if (quantidade >= 1000)      preco_unit = Number(prod.preco_m2_1000);
+        else if (quantidade >= 500)  preco_unit = Number(prod.preco_m2_500);
+        else                         preco_unit = Number(prod.preco_m2_100);
+      }
+    }
+
+    if (!preco_unit) return res.status(422).json({ erro: 'Tabela de preços não configurada.' });
+
+    const total = Number((preco_unit * (prod.preco_unidade === 'CM2' ? area_cm2 : area_m2) * quantidade).toFixed(2));
+
+    res.json({
+      ok: true,
+      preco_mode: prod.preco_unidade === 'CM2' ? 'AREA_CM2' : 'AREA_M2',
+      tier_aplicado: quantidade >= 1000 ? '1000+' : (quantidade >= 500 ? '500-999' : '100-499'),
+      preco_unit,
+      quantidade,
+      total,
+      area_cm2,
+      area_m2
+    });
+  } catch (err) {
+    console.error('[SIMULAR][POST] Err:', err);
+    res.status(500).json({ erro: 'Erro ao simular orçamento.' });
+  }
+});
+
+
 
 const ip = '0.0.0.0'; // Permite conexões externas
 

@@ -3,13 +3,31 @@ import { ProdutoService } from 'src/app/services/produto.service';
 import { Produto } from 'src/app/interfaces/produto.interface';
 import { ToastrService } from 'ngx-toastr';
 
-// Produto + dimensões/peso usados no frete
 type ProdutoDim = Produto & {
   width?: number | null;
   height?: number | null;
   length?: number | null;
   weight?: number | null;
   variacoes?: any[];
+};
+
+type PrecoUnidade = 'CM2' | 'M2';
+
+type QuoteConfig = {
+  aceita_orcamento: boolean;
+  modo_precificacao: 'AREA';
+  preco_unidade: PrecoUnidade;
+  upload_obrigatorio: boolean;
+
+  // preços por cm²
+  preco_cm2_100?: number | null;
+  preco_cm2_500?: number | null;
+  preco_cm2_1000?: number | null;
+
+  // preços por m²
+  preco_m2_100?: number | null;
+  preco_m2_500?: number | null;
+  preco_m2_1000?: number | null;
 };
 
 @Component({
@@ -32,7 +50,6 @@ export class TblProdutosComponent implements OnInit {
     estoque: 0,
     id_categoria: undefined,
     destaque: false,
-    // novos
     width: null,
     height: null,
     length: null,
@@ -43,11 +60,35 @@ export class TblProdutosComponent implements OnInit {
   imagemEditada: File | null = null;
 
   mostrarFormulario = false;
-  currentPage: number = 1;
-  itemsPerPage: number = 10;
-  totalPages: number = 0;
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalPages = 0;
   produtosPaginados: ProdutoDim[] = [];
   pages: number[] = [];
+
+  // Config de orçamento (somente por área)
+  quoteConfig: QuoteConfig = {
+    aceita_orcamento: false,
+    modo_precificacao: 'AREA',
+    preco_unidade: 'CM2',
+    upload_obrigatorio: true,
+    preco_cm2_100: null,
+    preco_cm2_500: null,
+    preco_cm2_1000: null,
+    preco_m2_100: null,
+    preco_m2_500: null,
+    preco_m2_1000: null,
+  };
+
+  simulacao: {
+    preco_unit?: number;        // preço por unidade de área (cm² ou m²)
+    preco_unit_item?: number;   // preço por peça (preço_unit * área)
+    total?: number;
+    tier?: string;
+    preco_mode?: 'AREA_CM2' | 'AREA_M2';
+    area_cm2?: number;
+    area_m2?: number;
+  } | null = null;
 
   constructor(
     private produtoService: ProdutoService,
@@ -62,7 +103,7 @@ export class TblProdutosComponent implements OnInit {
   carregarCategorias(): void {
     this.produtoService.getCategorias().subscribe(
       (categorias) => { this.categorias = categorias; },
-      (error) => { console.error('Erro ao carregar categorias:', error); }
+      () => {}
     );
   }
 
@@ -89,7 +130,6 @@ export class TblProdutosComponent implements OnInit {
     };
   }
 
-  // helper numérico (converte "10,5" -> 10.5; vazio -> null)
   private toNum(v: any): number | null {
     if (v === '' || v === null || v === undefined) return null;
     const n = Number(String(v).replace(',', '.'));
@@ -101,8 +141,8 @@ export class TblProdutosComponent implements OnInit {
       (response: any[]) => {
         this.produtos = response.map((produto) => ({
           ...produto,
-          id_produto: produto.id, // compatibilidade
-          width:  this.toNum(produto.width),
+          id_produto: produto.id,
+          width: this.toNum(produto.width),
           height: this.toNum(produto.height),
           length: this.toNum(produto.length),
           weight: this.toNum(produto.weight),
@@ -110,9 +150,8 @@ export class TblProdutosComponent implements OnInit {
         this.atualizarPaginacao();
         this.toastr.success('Produtos carregados com sucesso!', 'Sucesso');
       },
-      (error) => {
+      () => {
         this.erro = 'Erro ao carregar produtos';
-        console.error('Erro ao carregar produtos:', error);
         this.toastr.error('Erro ao carregar produtos', 'Erro');
       }
     );
@@ -135,12 +174,9 @@ export class TblProdutosComponent implements OnInit {
 
   adicionarProduto(): void {
     if (!this.validarProduto(this.novoProduto, true)) return;
-
     if (this.novoProduto.destaque) this.desmarcarTodosDestaquesMenosAtual();
 
-    // usa o helper do service para normalizar vírgula → ponto e chaves corretas
     const fd = this.produtoService.buildFormData(this.novoProduto, this.novoProduto.imagem as File | null);
-
     this.produtoService.addProduto(fd).subscribe({
       next: () => {
         this.toastr.success('Produto cadastrado com sucesso!', 'Sucesso');
@@ -155,23 +191,14 @@ export class TblProdutosComponent implements OnInit {
   }
 
   validarProduto(p: ProdutoDim, exigirImagem = false): boolean {
-    if (!p.nome) {
-      this.toastr.warning('O nome do produto é obrigatório', 'Atenção');
-      return false;
-    }
+    if (!p.nome) { this.toastr.warning('O nome do produto é obrigatório', 'Atenção'); return false; }
     if (p.preco == null || Number(String(p.preco).toString().replace(',', '.')) <= 0) {
-      this.toastr.warning('O preço deve ser maior que zero', 'Atenção');
-      return false;
+      this.toastr.warning('O preço deve ser maior que zero', 'Atenção'); return false;
     }
-    if (exigirImagem && !p.imagem) {
-      this.toastr.warning('Selecione uma imagem para o produto', 'Atenção');
-      return false;
-    }
+    if (exigirImagem && !p.imagem) { this.toastr.warning('Selecione uma imagem', 'Atenção'); return false; }
     for (const v of [p.width, p.height, p.length, p.weight]) {
       if (v != null && Number(v) < 0) {
-        const msg = 'Dimensões e peso não podem ser negativos';
-        this.toastr.warning(msg, 'Atenção');
-        return false;
+        this.toastr.warning('Dimensões e peso não podem ser negativos', 'Atenção'); return false;
       }
     }
     return true;
@@ -185,31 +212,60 @@ export class TblProdutosComponent implements OnInit {
           this.atualizarPaginacao();
           this.toastr.success('Produto deletado com sucesso!', 'Sucesso');
         },
-        (error) => {
-          console.error('Erro ao deletar produto:', error);
-          this.toastr.error('Erro ao deletar produto', 'Erro');
-        }
+        () => this.toastr.error('Erro ao deletar produto', 'Erro')
       );
     }
   }
 
-  editarProduto(produto: any): void {
+  editarProduto(produto: ProdutoDim): void {
     this.produtoEmEdicao = {
       ...produto,
-      id_produto: produto.id,
+      id_produto: produto.id_produto ?? (produto as any).id,
       variacoes: [],
-      width:  this.toNum(produto.width),
-      height: this.toNum(produto.height),
-      length: this.toNum(produto.length),
-      weight: this.toNum(produto.weight),
+      width: this.toNum((produto as any).width),
+      height: this.toNum((produto as any).height),
+      length: this.toNum((produto as any).length),
+      weight: this.toNum((produto as any).weight),
     } as ProdutoDim;
 
-    this.produtoService.getVariacoesPorProduto(produto.id).subscribe({
+    this.produtoService.getVariacoesPorProduto(this.produtoEmEdicao.id_produto).subscribe({
       next: (res) => { (this.produtoEmEdicao as any).variacoes = res; },
       error: () => { (this.produtoEmEdicao as any).variacoes = []; }
     });
 
     this.imagemEditada = null;
+
+    this.produtoService.getQuoteConfig(this.produtoEmEdicao.id_produto).subscribe({
+      next: (res) => {
+        const c = res?.config || {};
+        this.quoteConfig = {
+          aceita_orcamento: !!c.aceita_orcamento,
+          modo_precificacao: 'AREA',
+          preco_unidade: (c.preco_unidade === 'M2' ? 'M2' : 'CM2'),
+          upload_obrigatorio: !!c.upload_obrigatorio,
+          preco_cm2_100: this.toNum(c.preco_cm2_100),
+          preco_cm2_500: this.toNum(c.preco_cm2_500),
+          preco_cm2_1000: this.toNum(c.preco_cm2_1000),
+          preco_m2_100: this.toNum(c.preco_m2_100),
+          preco_m2_500: this.toNum(c.preco_m2_500),
+          preco_m2_1000: this.toNum(c.preco_m2_1000),
+        };
+      },
+      error: () => {
+        this.quoteConfig = {
+          aceita_orcamento: false,
+          modo_precificacao: 'AREA',
+          preco_unidade: 'CM2',
+          upload_obrigatorio: true,
+          preco_cm2_100: null,
+          preco_cm2_500: null,
+          preco_cm2_1000: null,
+          preco_m2_100: null,
+          preco_m2_500: null,
+          preco_m2_1000: null,
+        };
+      }
+    });
   }
 
   adicionarVariacao(): void {
@@ -228,9 +284,7 @@ export class TblProdutosComponent implements OnInit {
           variacoes.splice(index, 1);
           this.toastr.success('Variação excluída com sucesso!', 'Sucesso');
         },
-        error: () => {
-          this.toastr.error('Erro ao excluir variação', 'Erro');
-        }
+        error: () => this.toastr.error('Erro ao excluir variação', 'Erro')
       });
     } else {
       variacoes.splice(index, 1);
@@ -240,33 +294,71 @@ export class TblProdutosComponent implements OnInit {
   salvarEdicao(): void {
     if (!this.produtoEmEdicao) return;
     if (!this.validarProduto(this.produtoEmEdicao)) return;
-
     if (this.produtoEmEdicao.destaque) {
       this.desmarcarTodosDestaquesMenosAtual(this.produtoEmEdicao.id_produto);
     }
 
-    // monta o FormData pelo helper (faz vírgula→ponto e chaves corretas)
     const fd = this.produtoService.buildFormData(this.produtoEmEdicao, this.imagemEditada);
+    const idAtual = this.produtoEmEdicao.id_produto;
 
-    this.produtoService.updateProduto(String(this.produtoEmEdicao.id_produto), fd).subscribe({
+    this.produtoService.updateProduto(String(idAtual), fd).subscribe({
       next: () => {
         const variacoes = (this.produtoEmEdicao as any).variacoes || [];
         variacoes.forEach((v: any) => {
-          if (v.id_variacao) {
-            this.produtoService.updateVariacao(v.id_variacao, v).subscribe();
-          } else {
-            this.produtoService.addVariacao({ ...v, id_produto: this.produtoEmEdicao!.id_produto }).subscribe();
-          }
+          if (v.id_variacao) this.produtoService.updateVariacao(v.id_variacao, v).subscribe();
+          else this.produtoService.addVariacao({ ...v, id_produto: idAtual }).subscribe();
+        });
+
+        this.produtoService.saveQuoteConfig(idAtual, this.quoteConfig).subscribe({
+          error: () => this.toastr.error('Erro ao salvar configuração de orçamento', 'Erro')
         });
 
         this.toastr.success('Produto atualizado com sucesso!', 'Sucesso');
         this.carregarProdutos();
         this.produtoEmEdicao = null;
         this.imagemEditada = null;
+        this.simulacao = null;
       },
       error: (error) => {
         this.toastr.error('Erro ao atualizar produto', 'Erro');
         console.error('Erro ao atualizar produto:', error);
+      }
+    });
+  }
+
+  /** Simulador: calcula também o preço por peça (área × preço_unit) */
+  simular(largura: number, altura: number, quantidade: number) {
+    if (!this.produtoEmEdicao) return;
+    const L = Number(largura);
+    const A = Number(altura);
+    const Q = Number(quantidade);
+    if (!L || !A || !Q) {
+      this.toastr.warning('Informe largura, altura e quantidade válidas', 'Atenção');
+      return;
+    }
+
+    this.produtoService.simularOrcamento({
+      id_produto: this.produtoEmEdicao.id_produto,
+      largura_cm: L,
+      altura_cm: A,
+      quantidade: Q
+    }).subscribe({
+      next: (r: any) => {
+        const area = r.preco_mode === 'AREA_CM2' ? Number(r.area_cm2) : Number(r.area_m2);
+        this.simulacao = {
+          preco_unit: Number(r.preco_unit),
+          preco_unit_item: Number(r.preco_unit) * area,
+          total: Number(r.total),
+          tier: r.tier_aplicado,
+          preco_mode: r.preco_mode,
+          area_cm2: Number(r.area_cm2),
+          area_m2: Number(r.area_m2)
+        };
+        this.toastr.success('Simulação calculada', 'Ok');
+      },
+      error: (e) => {
+        this.simulacao = null;
+        this.toastr.error(e?.error?.erro || 'Erro na simulação', 'Erro');
       }
     });
   }
@@ -290,11 +382,8 @@ export class TblProdutosComponent implements OnInit {
   gerarPreview(file: File, target: 'novoProduto' | 'produtoEmEdicao'): void {
     const reader = new FileReader();
     reader.onload = (e: any) => {
-      if (target === 'novoProduto') {
-        this.novoProduto.imagemUrl = e.target.result;
-      } else if (this.produtoEmEdicao) {
-        this.produtoEmEdicao.imagemUrl = e.target.result as string;
-      }
+      if (target === 'novoProduto') this.novoProduto.imagemUrl = e.target.result;
+      else if (this.produtoEmEdicao) this.produtoEmEdicao.imagemUrl = e.target.result as string;
     };
     reader.readAsDataURL(file);
   }
@@ -302,9 +391,13 @@ export class TblProdutosComponent implements OnInit {
   cancelarEdicao(): void {
     this.produtoEmEdicao = null;
     this.imagemEditada = null;
+    this.simulacao = null;
   }
 
-  // destaque único
+  limparSimulacao(): void {
+    this.simulacao = null;
+  }
+
   aoMarcarDestaqueNovoProduto() {
     if (this.novoProduto.destaque) this.desmarcarTodosDestaquesMenosAtual();
   }
