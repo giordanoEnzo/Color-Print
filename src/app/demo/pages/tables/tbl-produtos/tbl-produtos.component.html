@@ -139,7 +139,18 @@
 
           <div class="form-group">
             <label>Preço (R$)*</label>
-            <input [(ngModel)]="produtoEmEdicao.preco" name="preco_ed" type="number" step="0.01" class="form-control" required />
+            <input
+              [(ngModel)]="produtoEmEdicao.preco"
+              name="preco_ed"
+              type="number"
+              step="0.01"
+              class="form-control"
+              [disabled]="quoteConfig.aceita_orcamento"
+              required
+            />
+            <small *ngIf="quoteConfig.aceita_orcamento" class="text-muted">
+              Preço base desabilitado (produto por orçamento). O valor final dependerá das medidas do cliente.
+            </small>
           </div>
 
           <!-- Dimensões e Peso (EDIÇÃO) -->
@@ -170,7 +181,12 @@
           <div class="form-group mt-4">
             <div class="orcamento-toggle">
               <span>Habilitar orçamento online para este produto</span>
-              <input type="checkbox" [(ngModel)]="quoteConfig.aceita_orcamento" name="aceita_orcamento" />
+              <input
+                type="checkbox"
+                [(ngModel)]="quoteConfig.aceita_orcamento"
+                name="aceita_orcamento"
+                (ngModelChange)="onToggleAceitaOrcamento($event)"
+              />
             </div>
           </div>
 

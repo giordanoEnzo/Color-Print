@@ -40,6 +40,9 @@ export class TblProdutosComponent implements OnInit {
   categorias: any[] = [];
   erro: string | null = null;
 
+  // Guarda o último preço não-orçamento para restaurar caso o toggle seja desmarcado
+  private precoBackupEdicao: number | null = null;
+
   novoProduto: ProdutoDim = {
     id_produto: 0,
     nome: '',
@@ -192,8 +195,8 @@ export class TblProdutosComponent implements OnInit {
 
   validarProduto(p: ProdutoDim, exigirImagem = false): boolean {
     if (!p.nome) { this.toastr.warning('O nome do produto é obrigatório', 'Atenção'); return false; }
-    if (p.preco == null || Number(String(p.preco).toString().replace(',', '.')) <= 0) {
-      this.toastr.warning('O preço deve ser maior que zero', 'Atenção'); return false;
+    if (p.preco == null || Number(String(p.preco).toString().replace(',', '.')) < 0) {
+      this.toastr.warning('O preço não pode ser negativo', 'Atenção'); return false;
     }
     if (exigirImagem && !p.imagem) { this.toastr.warning('Selecione uma imagem', 'Atenção'); return false; }
     for (const v of [p.width, p.height, p.length, p.weight]) {
@@ -228,6 +231,9 @@ export class TblProdutosComponent implements OnInit {
       weight: this.toNum((produto as any).weight),
     } as ProdutoDim;
 
+    // guarda backup do preço atual para caso o usuário desmarque o orçamento
+    this.precoBackupEdicao = this.produtoEmEdicao.preco ?? 0;
+
     this.produtoService.getVariacoesPorProduto(this.produtoEmEdicao.id_produto).subscribe({
       next: (res) => { (this.produtoEmEdicao as any).variacoes = res; },
       error: () => { (this.produtoEmEdicao as any).variacoes = []; }
@@ -250,6 +256,12 @@ export class TblProdutosComponent implements OnInit {
           preco_m2_500: this.toNum(c.preco_m2_500),
           preco_m2_1000: this.toNum(c.preco_m2_1000),
         };
+
+        // Se já vier habilitado do backend, força preço = 0 visualmente
+        if (this.quoteConfig.aceita_orcamento && this.produtoEmEdicao) {
+          this.precoBackupEdicao = this.produtoEmEdicao.preco ?? 0;
+          this.produtoEmEdicao.preco = 0;
+        }
       },
       error: () => {
         this.quoteConfig = {
@@ -266,6 +278,22 @@ export class TblProdutosComponent implements OnInit {
         };
       }
     });
+  }
+
+  /** Toggle do orçamento: zera/restaura o preço no formulário de edição */
+  onToggleAceitaOrcamento(checked: boolean) {
+    if (!this.produtoEmEdicao) return;
+    if (checked) {
+      // salva o preço antigo e zera para a UX refletir que o preço base não se aplica
+      this.precoBackupEdicao = this.produtoEmEdicao.preco ?? 0;
+      this.produtoEmEdicao.preco = 0;
+      this.toastr.info('Preço base será desconsiderado e ficará 0. O valor final dependerá das medidas.', 'Orçamento habilitado');
+    } else {
+      // restaura
+      if (this.precoBackupEdicao != null) {
+        this.produtoEmEdicao.preco = this.precoBackupEdicao;
+      }
+    }
   }
 
   adicionarVariacao(): void {
@@ -298,6 +326,11 @@ export class TblProdutosComponent implements OnInit {
       this.desmarcarTodosDestaquesMenosAtual(this.produtoEmEdicao.id_produto);
     }
 
+    // Força preço = 0 no payload se orçamento estiver habilitado
+    if (this.quoteConfig.aceita_orcamento) {
+      this.produtoEmEdicao.preco = 0;
+    }
+
     const fd = this.produtoService.buildFormData(this.produtoEmEdicao, this.imagemEditada);
     const idAtual = this.produtoEmEdicao.id_produto;
 
@@ -309,6 +342,7 @@ export class TblProdutosComponent implements OnInit {
           else this.produtoService.addVariacao({ ...v, id_produto: idAtual }).subscribe();
         });
 
+        // Salva a configuração de orçamento
         this.produtoService.saveQuoteConfig(idAtual, this.quoteConfig).subscribe({
           error: () => this.toastr.error('Erro ao salvar configuração de orçamento', 'Erro')
         });
