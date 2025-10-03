@@ -6,6 +6,7 @@ import { CartService, Produto } from 'src/app/services/cart.service';
 import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 import { BannerService, BannerFilesResponse } from 'src/app/services/banner.service';
+import { VendasService } from 'src/app/services/vendas.service';  // <-- IMPORTADO
 
 interface Categoria {
   id_categoria: number;
@@ -33,11 +34,8 @@ interface SimulacaoUI {
   bucket_label?: string;
   tier?: string;
   preco_mode?: PrecoMode;
-  // preço por peça que será usado para carrinho
   preco_unit_peca: number;
-  // preço por área (se o backend enviar; R$/cm² ou R$/m²)
   preco_unidade_area?: number | null;
-  // área calculada (se enviada pelo backend)
   area_cm2?: number | null;
   area_m2?: number | null;
   total: number;
@@ -84,10 +82,10 @@ export class LandingpageComponent implements OnInit, OnDestroy {
     arquivo: null
   };
   orcConfig: any = null;
-
   simulacao: SimulacaoUI | null = null;
   loadingOrc: boolean = false;
 
+  previewUrl: string | null = null; // preview da imagem
   private _cb = `?v=${Date.now()}`;
 
   constructor(
@@ -97,7 +95,8 @@ export class LandingpageComponent implements OnInit, OnDestroy {
     private cartService: CartService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private bannerService: BannerService
+    private bannerService: BannerService,
+    private vendasService: VendasService // <-- INJETADO
   ) {}
 
   ngOnInit(): void {
@@ -135,6 +134,7 @@ export class LandingpageComponent implements OnInit, OnDestroy {
     const file = event.target.files?.[0];
     if (file) {
       this.orcForm.arquivo = file;
+      this.previewUrl = URL.createObjectURL(file);
       this.toastr.info(`Arquivo "${file.name}" selecionado.`);
     }
   }
@@ -215,6 +215,7 @@ export class LandingpageComponent implements OnInit, OnDestroy {
 
     this.simulacao = null;
     this.orcForm = { largura_cm: null, altura_cm: null, quantidade: 100, arquivo: null };
+    this.previewUrl = null;
 
     this.calcularPreco();
     this.carregarVariacoesProduto(idProduto);
@@ -319,6 +320,14 @@ export class LandingpageComponent implements OnInit, OnDestroy {
     this.loadingOrc = true;
     this.simulacao = null;
 
+    console.log("🚀 Dados enviados para simulação:", {
+      id_produto: (this.produtoSelecionado as any).id_produto,
+      largura_cm: largura,
+      altura_cm: altura,
+      quantidade: qtd,
+      arquivo: this.orcForm.arquivo ? this.orcForm.arquivo.name : null
+    });
+
     this.produtoService.simularOrcamento({
       id_produto: (this.produtoSelecionado as any).id_produto,
       largura_cm: largura,
@@ -326,24 +335,18 @@ export class LandingpageComponent implements OnInit, OnDestroy {
       quantidade: qtd
     }).subscribe({
       next: (res: any) => {
-        // Tenta identificar o modo
         const precoMode: PrecoMode =
           res.preco_mode ||
           (res.bucket ? 'BUCKET' : (this.orcConfig?.preco_unidade === 'M2' ? 'AREA_M2' : 'AREA_CM2'));
 
-        // Em BACKEND antigo: BUCKET -> preco_unit já é por peça.
-        // Em BACKEND por ÁREA: alguns retornam preco_unit = preço por área (R$/m² ou R$/cm²).
-        // Para ficar robusto: se total e qtd vierem, garantimos o preço/peça por total/qtd.
         const total = this.toNum(res.total);
         const precoAreaUnitPossivel = this.toNum(res.preco_area_unit || res.preco_unit_area || 0);
         let precoUnitPeca: number;
 
         if (precoMode.startsWith('AREA')) {
-          // Se vier explícito preco_unit_item, usamos. Senão total/qtd.
           const fromField = this.toNum(res.preco_unit_item);
           precoUnitPeca = fromField > 0 ? fromField : (qtd > 0 ? total / qtd : 0);
         } else {
-          // BUCKET
           const fromField = this.toNum(res.preco_unit);
           precoUnitPeca = fromField > 0 ? fromField : (qtd > 0 ? total / qtd : 0);
         }
@@ -370,9 +373,6 @@ export class LandingpageComponent implements OnInit, OnDestroy {
 
   limparOrcamento() {
     this.simulacao = null;
-    // mantém dimensões preenchidas; comente as 2 linhas abaixo se quiser limpar tudo
-    // this.orcForm.altura_cm = null;
-    // this.orcForm.largura_cm = null;
   }
 
   adicionarOrcamentoAoCarrinho() {
@@ -395,6 +395,63 @@ export class LandingpageComponent implements OnInit, OnDestroy {
 
     this.toastr.success('Orçamento adicionado ao carrinho!');
     this.fecharModal();
+  }
+
+  // 🔥 NOVO: Finalizar orçamento e salvar no backend
+  finalizarOrcamento() {
+    if (!this.produtoSelecionado || !this.simulacao) {
+      this.toastr.error('Nenhum orçamento calculado.');
+      return;
+    }
+
+    const qtd = Math.max(100, Math.floor(this.orcForm.quantidade || 100));
+
+    const venda = {
+      nome: 'Cliente Orçamento',
+      email: 'orcamento@teste.com',
+      telefone: '',
+      endereco: '',
+      cep: '',
+      logradouro: '',
+      cidade: '',
+      estado_uf: '',
+      total: this.simulacao.total,
+      items: [{
+        id_produto: (this.produtoSelecionado as any).id_produto,
+        nome: this.produtoSelecionado.nome,
+        largura: this.orcForm.largura_cm,
+        altura: this.orcForm.altura_cm,
+        quantidade: qtd,
+        preco: this.simulacao.preco_unit_peca
+      }]
+    };
+
+    this.vendasService.addVenda(venda).subscribe({
+      next: (res) => {
+        const idPedido = res?.id_pedido;
+        if (!idPedido) {
+          this.toastr.error('Pedido não retornou ID.');
+          return;
+        }
+
+        if (this.orcForm.arquivo) {
+          this.vendasService.uploadArte(idPedido, this.orcForm.arquivo).subscribe({
+            next: () => {
+              this.toastr.success('Pedido e arte salvos com sucesso!');
+              this.fecharModal();
+            },
+            error: () => {
+              this.toastr.warning('Pedido salvo, mas falha no upload da arte.');
+              this.fecharModal();
+            }
+          });
+        } else {
+          this.toastr.success('Pedido salvo com sucesso!');
+          this.fecharModal();
+        }
+      },
+      error: () => this.toastr.error('Erro ao salvar pedido.')
+    });
   }
 
   getImagemUrl(imagem: string): string {

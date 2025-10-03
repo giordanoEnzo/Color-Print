@@ -118,10 +118,10 @@
     <button class="close-btn" (click)="fecharModal()">✖</button>
 
     <div class="modal-content">
-      <!-- LADO ESQUERDO: IMAGEM -->
+      <!-- LADO ESQUERDO: IMAGEM COM PREVIEW -->
       <div class="modal-left">
         <img
-          [src]="getImagemUrl(produtoSelecionado.imagem)"
+          [src]="previewUrl || getImagemUrl(produtoSelecionado.imagem)"
           [alt]="produtoSelecionado.nome"
           class="modal-img"
         />

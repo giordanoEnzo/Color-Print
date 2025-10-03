@@ -52,5 +52,13 @@ export class VendasService {
   fecharCaixa(dados: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/caixa/fechar`, dados);
   }
+
+  // Método para enviar arte vinculada a um pedido
+  uploadArte(id_pedido: number, arquivo: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('arquivo', arquivo);
+    
+    return this.http.post(`${this.apiUrl}/vendas/${id_pedido}/arte`, formData);
+  }
   
 }

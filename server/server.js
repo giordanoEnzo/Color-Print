@@ -40,7 +40,7 @@ if (!MELHOR_ENVIO_TOKEN) {
 
 /** Melhor Envio: config */
 const ME_BASE_URL   = process.env.ME_BASE_URL || 'https://sandbox.melhorenvio.com.br'; // sandbox por padrão
-const ME_CEP_ORIGEM = (process.env.ME_CEP_ORIGEM || '13600000').replace(/\D/g, '');     // CEP de origem
+const ME_CEP_ORIGEM = (process.env.ME_CEP_ORIGEM || '13635-203').replace(/\D/g, '');     // CEP de origem
 
 /** Pacote default (cm/kg) – usado se itens não tiverem dimensões/peso */
 const DEFAULT_PKG = {
@@ -104,7 +104,7 @@ const client = new MercadoPagoConfig({
 
 /* ===========================================
    MELHOR ENVIO
-   =========================================== */
+=========================================== */
 
 // Ping – verifica token/ambiente
 app.get('/api/melhor-envio/ping', async (req, res) => {
@@ -127,27 +127,42 @@ app.post('/api/frete-melhor-envio', async (req, res) => {
     const cepDestino = String(req.body.cepDestino || '').replace(/\D/g, '');
     const items = Array.isArray(req.body.items) ? req.body.items : [];
 
+    console.log("[DEBUG][FRETE] CEP origem configurado:", ME_CEP_ORIGEM);
+    console.log("[DEBUG][FRETE] CEP destino recebido:", cepDestino);
+
+    // === DEBUG: dados recebidos ===
+    console.log("\x1b[36m[DEBUG][FRETE] Items recebidos do front:\x1b[0m", JSON.stringify(items, null, 2));
+
     if (!cepDestino || cepDestino.length < 8) {
       return res.status(400).json({ error: 'CEP de destino inválido.' });
     }
 
-    // Monta "products" a partir do carrinho; se não vier nada, usa pacote default
+    // Monta "products" usando medidas vindas do front ou do banco
     const products = items.map((it, idx) => ({
       id: String(it.id || it.id_produto || idx + 1),
-      width:  numOrNull(it.width)  ?? DEFAULT_PKG.width,
-      height: numOrNull(it.height) ?? DEFAULT_PKG.height,
-      length: numOrNull(it.length) ?? DEFAULT_PKG.length,
-      weight: numOrNull(it.weight) ?? DEFAULT_PKG.weight,
+
+      // aceita width/height/length/weight OU largura_cm/altura_cm/comprimento/peso
+      width:  numOrNull(it.width  || it.largura_cm)  ?? DEFAULT_PKG.width,
+      height: numOrNull(it.height || it.altura_cm)   ?? DEFAULT_PKG.height,
+      length: numOrNull(it.length || it.comprimento) ?? DEFAULT_PKG.length,
+      weight: numOrNull(it.weight || it.peso)        ?? DEFAULT_PKG.weight,
+
       quantity: Number(it.quantity ?? it.quantidade) || 1
     }));
+
+    // === DEBUG: normalização dos produtos ===
+    console.log("\x1b[33m[DEBUG][FRETE] Produtos normalizados (para envio):\x1b[0m", JSON.stringify(products, null, 2));
 
     const body = {
       from: { postal_code: ME_CEP_ORIGEM },
       to:   { postal_code: cepDestino },
       options: { receipt: false, own_hand: false },
       ...(products.length ? { products } : { package: DEFAULT_PKG })
-      // services: "1,2,18" // (opcional) restringir serviços
+      // services: "1,2,18"
     };
+
+    // === DEBUG: corpo final enviado ===
+    console.log("\x1b[35m[DEBUG][FRETE] Body enviado para API do Melhor Envio:\x1b[0m", JSON.stringify(body, null, 2));
 
     const { data } = await axios.post(
       `${ME_BASE_URL}/api/v2/me/shipment/calculate`,
@@ -155,7 +170,10 @@ app.post('/api/frete-melhor-envio', async (req, res) => {
       { headers: meHeaders, timeout: 10000 }
     );
 
-    // Normaliza o retorno para o front — preenche days usando delivery_range (max/min) se necessário
+    // === DEBUG: resposta bruta ===
+    console.log("\x1b[32m[DEBUG][FRETE] Resposta recebida da API do Melhor Envio:\x1b[0m", JSON.stringify(data, null, 2));
+
+    // Normaliza retorno
     const quotes = (Array.isArray(data) ? data : []).map((q) => {
       const dt    = q.custom_delivery_time ?? q.delivery_time ?? {};
       const range = q.custom_delivery_range ?? q.delivery_range ?? {};
@@ -181,13 +199,15 @@ app.post('/api/frete-melhor-envio', async (req, res) => {
 
     res.json(quotes);
   } catch (err) {
-    console.error('Erro Melhor Envio:', err?.response?.data || err.message);
+    console.error('\x1b[31m[ERRO][FRETE] Falha no cálculo:\x1b[0m', err?.response?.data || err.message);
     const status = err?.response?.status || 500;
     res.status(status).json(
       err?.response?.data || { error: 'Erro ao calcular frete no Melhor Envio.' }
     );
   }
 });
+
+
 
 
 /* ===========================================
@@ -1153,6 +1173,57 @@ app.post('/api/orcamento/simular', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao simular orçamento.' });
   }
 });
+
+
+/* ===========================================
+   UPLOAD DE ARTES DOS PEDIDOS
+   =========================================== */
+
+// Cria pasta uploads/artes se não existir
+const artesDir = path.join(__dirname, 'uploads', 'artes');
+ensureDir(artesDir);
+
+// Storage para salvar a arte com nome único
+const storageArtes = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, artesDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `pedido_${req.params.id}_${Date.now()}${ext}`);
+  }
+});
+
+const uploadArte = multer({ storage: storageArtes });
+
+// Servir as artes estaticamente
+app.use('/uploads/artes', express.static(artesDir));
+
+/**
+ * POST /api/vendas/:id/arte
+ * Upload da arte vinculada a um pedido
+ * Body: multipart/form-data { arquivo }
+ */
+app.post('/api/vendas/:id/arte', uploadArte.single('arquivo'), async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!req.file) {
+      return res.status(400).json({ erro: 'Arquivo não enviado.' });
+    }
+
+    const relativePath = `uploads/artes/${req.file.filename}`;
+    const url = `${req.protocol}://${req.headers.host}/${relativePath}`;
+
+    await db.promise().query(
+      'UPDATE vendas SET arte_pedido = ? WHERE id_pedido = ?',
+      [relativePath, id]
+    );
+
+    res.json({ success: true, url });
+  } catch (err) {
+    console.error('[ARTE][UPLOAD] Err:', err);
+    res.status(500).json({ erro: 'Erro ao salvar arte do pedido.' });
+  }
+});
+
 
 
 
