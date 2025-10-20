@@ -128,7 +128,7 @@
       </div>
 
       <!-- LADO DIREITO: INFO -->
-      <div class="modal-right">
+      <div class="modal-right"> 
         <br /><br />
         <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
         <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
@@ -196,7 +196,8 @@
                 (change)="onOrcFile($event)"
                 accept="image/*,.pdf"
               />
-              <small class="text-danger" *ngIf="orcConfig?.upload_obrigatorio">Upload obrigatório</small>
+              <!-- Mostrar apenas quando upload for obrigatório, o usuário tentou simular, e nenhum arquivo foi selecionado -->
+              <small class="text-danger" *ngIf="orcConfig?.upload_obrigatorio && orcAttempted && !orcForm.arquivo">Upload obrigatório</small>
             </div>
 
             <button

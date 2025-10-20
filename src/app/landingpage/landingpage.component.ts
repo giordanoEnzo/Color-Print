@@ -81,11 +81,13 @@ export class LandingpageComponent implements OnInit, OnDestroy {
     quantidade: 100,
     arquivo: null
   };
+
   orcConfig: any = null;
   simulacao: SimulacaoUI | null = null;
   loadingOrc: boolean = false;
 
   previewUrl: string | null = null; // preview da imagem
+  orcAttempted: boolean = false; // flag para controlar quando mostrar aviso de upload obrigatório
   private _cb = `?v=${Date.now()}`;
 
   constructor(
@@ -136,6 +138,8 @@ export class LandingpageComponent implements OnInit, OnDestroy {
       this.orcForm.arquivo = file;
       this.previewUrl = URL.createObjectURL(file);
       this.toastr.info(`Arquivo "${file.name}" selecionado.`);
+      // usuário selecionou arquivo; não precisamos mais mostrar o aviso
+      this.orcAttempted = false;
     }
   }
 
@@ -176,12 +180,14 @@ export class LandingpageComponent implements OnInit, OnDestroy {
   private stopCarouselTimer() {
     if (this.carouselTimerId) { clearInterval(this.carouselTimerId); this.carouselTimerId = null; }
   }
+  
   private resetCarouselTimer() { this.stopCarouselTimer(); this.startCarouselTimer(); }
 
   avancarSlide(userAction = true) {
     this.slideIndex = (this.slideIndex + 1) % this.slides.length;
     if (userAction) this.resetCarouselTimer();
   }
+
   voltarSlide() {
     this.slideIndex = (this.slideIndex - 1 + this.slides.length) % this.slides.length;
     this.resetCarouselTimer();
@@ -216,6 +222,7 @@ export class LandingpageComponent implements OnInit, OnDestroy {
     this.simulacao = null;
     this.orcForm = { largura_cm: null, altura_cm: null, quantidade: 100, arquivo: null };
     this.previewUrl = null;
+  this.orcAttempted = false;
 
     this.calcularPreco();
     this.carregarVariacoesProduto(idProduto);
@@ -300,6 +307,13 @@ export class LandingpageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Se upload for obrigatório e não há arquivo, marcar tentativa e mostrar aviso
+    if (this.orcConfig?.upload_obrigatorio && !this.orcForm.arquivo) {
+      this.orcAttempted = true;
+      this.toastr.warning('Envie a estampa antes de simular o orçamento.');
+      return;
+    }
+
     if (this.orcConfig?.largura_min_cm && largura < this.orcConfig.largura_min_cm) {
       this.toastr.warning(`Largura mínima: ${this.orcConfig.largura_min_cm} cm`);
       return;
@@ -373,6 +387,7 @@ export class LandingpageComponent implements OnInit, OnDestroy {
 
   limparOrcamento() {
     this.simulacao = null;
+    this.orcAttempted = false;
   }
 
   adicionarOrcamentoAoCarrinho() {
