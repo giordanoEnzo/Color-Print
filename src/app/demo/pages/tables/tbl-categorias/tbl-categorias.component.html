@@ -15,7 +15,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let cat of categorias">
+          <tr *ngFor="let cat of categoriasPaginadas">
             <td>{{ cat.id_categoria }}</td>
             <td>{{ cat.nome }}</td>
             <td>{{ cat.descricao }}</td>
@@ -35,6 +35,21 @@
     </div>
   </div>
 </div>
+
+<!-- PAGINAÇÃO -->
+<nav aria-label="Page navigation" class="mt-3">
+  <ul class="pagination justify-content-center">
+    <li class="page-item" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+      <span class="page-link">Anterior</span>
+    </li>
+    <li class="page-item" *ngFor="let page of pages" [class.active]="page === currentPage" (click)="changePage(page)">
+      <span class="page-link">{{ page }}</span>
+    </li>
+    <li class="page-item" [class.disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+      <span class="page-link">Próximo</span>
+    </li>
+  </ul>
+</nav>
 
 <!-- Modal Categoria -->
 <div class="modal" *ngIf="mostrarModalCategoria">

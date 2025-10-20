@@ -10,8 +10,14 @@ import { CategoriaService } from 'src/app/services/categoria.service';
 export class TblCategoriasComponent implements OnInit {
 
   categorias: Categoria[] = [];
+  categoriasPaginadas: Categoria[] = [];
   categoriaSelecionada: Categoria | null = null;
   mostrarModalCategoria: boolean = false;
+  // paginação
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalPages = 0;
+  pages: number[] = [];
 
   constructor(private categoriaService: CategoriaService) {}
 
@@ -22,7 +28,24 @@ export class TblCategoriasComponent implements OnInit {
   carregarCategorias(): void {
     this.categoriaService.getTodasCategorias().subscribe((res) => {
       this.categorias = res;
+      this.atualizarPaginacao();
     });
+  }
+
+  atualizarPaginacao(): void {
+    this.totalPages = Math.max(1, Math.ceil(this.categorias.length / this.itemsPerPage));
+    this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    // ajusta currentPage se necessário
+    if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = this.currentPage * this.itemsPerPage;
+    this.categoriasPaginadas = this.categorias.slice(start, end);
+  }
+
+  changePage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.atualizarPaginacao();
   }
 
   abrirModalNovaCategoria(): void {
