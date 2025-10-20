@@ -22,8 +22,8 @@
               <p class="card-text product-description">{{ produto.descricao }}</p>
 
               <div class="d-flex justify-content-between">
-                <button class="btn btn-danger btn-lg" (click)="deletarProduto(produto.id_produto)">Excluir</button>
                 <button class="btn btn-success btn-lg" (click)="editarProduto(produto)">Editar</button>
+                <button class="btn btn-danger btn-lg" (click)="deletarProduto(produto.id_produto)">Excluir</button>
               </div>
             </div>
           </div>
@@ -151,6 +151,14 @@
             <small *ngIf="quoteConfig.aceita_orcamento" class="text-muted">
               Preço base desabilitado (produto por orçamento). O valor final dependerá das medidas do cliente.
             </small>
+          </div>
+
+          <div class="form-group">
+            <label for="categoriaEdicao">Categoria</label>
+            <select id="categoriaEdicao" class="form-control" [(ngModel)]="produtoEmEdicao.id_categoria" name="id_categoria_ed">
+              <option [ngValue]="null">Sem categoria</option>
+              <option *ngFor="let categoria of categorias" [value]="categoria.id_categoria">{{ categoria.nome }}</option>
+            </select>
           </div>
 
           <!-- Dimensões e Peso (EDIÇÃO) -->
