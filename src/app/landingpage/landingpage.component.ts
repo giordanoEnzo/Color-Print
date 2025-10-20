@@ -26,6 +26,8 @@ interface OrcForm {
   altura_cm: number | null;
   quantidade: number;
   arquivo?: File | null;
+  arquivoBase64?: string | null;
+  arquivoName?: string | null;
 }
 
 type PrecoMode = 'BUCKET' | 'AREA_CM2' | 'AREA_M2' | string;
@@ -136,8 +138,15 @@ export class LandingpageComponent implements OnInit, OnDestroy {
     const file = event.target.files?.[0];
     if (file) {
       this.orcForm.arquivo = file;
+      this.orcForm.arquivoName = file.name;
       this.previewUrl = URL.createObjectURL(file);
       this.toastr.info(`Arquivo "${file.name}" selecionado.`);
+      // Convert to base64 for later inclusion in cart
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.orcForm.arquivoBase64 = (reader.result as string) || null;
+      };
+      reader.readAsDataURL(file);
       // usuário selecionou arquivo; não precisamos mais mostrar o aviso
       this.orcAttempted = false;
     }
@@ -180,7 +189,7 @@ export class LandingpageComponent implements OnInit, OnDestroy {
   private stopCarouselTimer() {
     if (this.carouselTimerId) { clearInterval(this.carouselTimerId); this.carouselTimerId = null; }
   }
-  
+
   private resetCarouselTimer() { this.stopCarouselTimer(); this.startCarouselTimer(); }
 
   avancarSlide(userAction = true) {
@@ -405,7 +414,9 @@ export class LandingpageComponent implements OnInit, OnDestroy {
       'Orçamento Online',
       this.orcForm.largura_cm,
       this.orcForm.altura_cm,
-      qtd
+      qtd,
+      this.orcForm.arquivoBase64 || null,
+      this.orcForm.arquivoName || null
     );
 
     this.toastr.success('Orçamento adicionado ao carrinho!');
@@ -441,32 +452,27 @@ export class LandingpageComponent implements OnInit, OnDestroy {
       }]
     };
 
-    this.vendasService.addVenda(venda).subscribe({
-      next: (res) => {
-        const idPedido = res?.id_pedido;
-        if (!idPedido) {
-          this.toastr.error('Pedido não retornou ID.');
-          return;
+    // Se houver arquivo, envie como multipart junto com os campos
+    if (this.orcForm.arquivo) {
+      this.vendasService.addVendaWithArquivo(venda, this.orcForm.arquivo).subscribe({
+        next: (res) => {
+          this.toastr.success('Pedido e arte salvos com sucesso!');
+          this.fecharModal();
+        },
+        error: (e) => {
+          console.error('Erro ao salvar venda com arquivo:', e);
+          this.toastr.error('Erro ao salvar pedido com arte.');
         }
-
-        if (this.orcForm.arquivo) {
-          this.vendasService.uploadArte(idPedido, this.orcForm.arquivo).subscribe({
-            next: () => {
-              this.toastr.success('Pedido e arte salvos com sucesso!');
-              this.fecharModal();
-            },
-            error: () => {
-              this.toastr.warning('Pedido salvo, mas falha no upload da arte.');
-              this.fecharModal();
-            }
-          });
-        } else {
+      });
+    } else {
+      this.vendasService.addVenda(venda).subscribe({
+        next: (res) => {
           this.toastr.success('Pedido salvo com sucesso!');
           this.fecharModal();
-        }
-      },
-      error: () => this.toastr.error('Erro ao salvar pedido.')
-    });
+        },
+        error: () => this.toastr.error('Erro ao salvar pedido.')
+      });
+    }
   }
 
   getImagemUrl(imagem: string): string {

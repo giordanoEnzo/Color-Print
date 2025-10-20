@@ -848,18 +848,34 @@ app.delete('/api/variacoes/:id', async (req, res) => {
 });
 
 /* VENDAS */
+// Storage para upload durante criação de venda (sem id ainda)
+const storageVenda = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, artesDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '');
+    cb(null, `venda_${Date.now()}${ext}`);
+  }
+});
 
-app.post('/api/vendas', async (req, res) => {
+const uploadVenda = multer({ storage: storageVenda });
+
+// Aceita opcionalmente um arquivo 'arquivo' no multipart/form-data
+app.post('/api/vendas', uploadVenda.single('arquivo'), async (req, res) => {
   const {
     nome, email, telefone, endereco, cep, logradouro, cidade, estado_uf,
     items, frete, total
   } = req.body;
 
   try {
+    let artePath = null;
+    if (req.file) {
+      artePath = `uploads/artes/${req.file.filename}`;
+    }
+
     const [result] = await db.promise().query(
       `INSERT INTO vendas
-        (nome_cliente, email_cliente, telefone_cliente, endereco_cliente, cep_cliente, logradouro, cidade, estado_uf, total_compra, itens_pedido, frete_nome, frete_valor, status_pedido)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (nome_cliente, email_cliente, telefone_cliente, endereco_cliente, cep_cliente, logradouro, cidade, estado_uf, total_compra, itens_pedido, frete_nome, frete_valor, status_pedido, arte_pedido)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         nome,
         email,
@@ -873,7 +889,8 @@ app.post('/api/vendas', async (req, res) => {
         JSON.stringify(items),
         frete?.name || null,
         frete?.price ? Number(String(frete.price).replace(',', '.')) : null,
-        'PENDENTE'
+        'PENDENTE',
+        artePath
       ]
     );
 
@@ -892,7 +909,8 @@ app.get('/api/vendas', async (req, res) => {
     // Parseia o campo itens_pedido para JSON antes de enviar ao frontend
     const vendas = rows.map(row => ({
       ...row,
-      itens_pedido: row.itens_pedido ? JSON.parse(row.itens_pedido) : []
+      itens_pedido: row.itens_pedido ? JSON.parse(row.itens_pedido) : [],
+      arte_pedido_url: row.arte_pedido ? `${req.protocol}://${req.headers.host}/${row.arte_pedido}` : null
     }));
     res.json(vendas);
   } catch (err) {
@@ -1223,8 +1241,6 @@ app.post('/api/vendas/:id/arte', uploadArte.single('arquivo'), async (req, res) 
     res.status(500).json({ erro: 'Erro ao salvar arte do pedido.' });
   }
 });
-
-
 
 
 const ip = '0.0.0.0'; // Permite conexões externas

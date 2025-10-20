@@ -20,6 +20,19 @@ export class VendasService {
     return this.http.post(`${this.apiUrl}/vendas`, venda);
   }
 
+  // Método para adicionar venda com arquivo (FormData)
+  addVendaWithArquivo(venda: any, arquivo?: File): Observable<any> {
+    const formData = new FormData();
+    // adiciona campos simples
+    for (const [k, v] of Object.entries(venda || {})) {
+      if (v === undefined || v === null) continue;
+      if (typeof v === 'object') formData.append(k, JSON.stringify(v));
+      else formData.append(k, String(v));
+    }
+    if (arquivo) formData.append('arquivo', arquivo);
+    return this.http.post(`${this.apiUrl}/vendas`, formData);
+  }
+
   //  // Método para listar todas as vendas
   //  getVendas(): Observable<any> {
   //   return this.http.get(`${this.apiUrl}/vendas`);

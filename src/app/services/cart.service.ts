@@ -15,6 +15,9 @@ export interface CarrinhoItem extends Produto {
   altura: number;
   largura: number;
   preco: number; // Preço final calculado
+  // Optional artwork uploaded for this cart item (stored as Base64 string + original name)
+  arquivoBase64?: string | null;
+  arquivoName?: string | null;
 }
 
 @Injectable({
@@ -32,14 +35,25 @@ export class CartService {
     this.emitir(); // já notifica os observadores com os dados carregados
   }
 
-  adicionarAoCarrinho(produto: Produto, preco: number, tamanho: string, altura: number, largura: number, quantidade = 1): void {
+  adicionarAoCarrinho(
+    produto: Produto,
+    preco: number,
+    tamanho: string,
+    altura: number,
+    largura: number,
+    quantidade = 1,
+    arquivoBase64?: string | null,
+    arquivoName?: string | null
+  ): void {
     const novoItem: CarrinhoItem = {
       ...produto,
       preco,
       tamanho,
       altura,
       largura,
-      quantidade
+      quantidade,
+      arquivoBase64: arquivoBase64 || null,
+      arquivoName: arquivoName || null
     };
 
     this.carrinho.push(novoItem);
