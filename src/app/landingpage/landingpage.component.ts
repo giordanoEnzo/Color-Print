@@ -139,7 +139,13 @@ export class LandingpageComponent implements OnInit, OnDestroy {
     if (file) {
       this.orcForm.arquivo = file;
       this.orcForm.arquivoName = file.name;
-      this.previewUrl = URL.createObjectURL(file);
+      // Se for PDF, usamos um placeholder SVG gerado como preview para evitar imagem quebrada
+      const isPdf = file.type === 'application/pdf' || (file.name || '').toLowerCase().endsWith('.pdf');
+      if (isPdf) {
+        this.previewUrl = this._pdfPreviewDataUrl(file.name || 'Arquivo PDF');
+      } else {
+        this.previewUrl = URL.createObjectURL(file);
+      }
       this.toastr.info(`Arquivo "${file.name}" selecionado.`);
       // Convert to base64 for later inclusion in cart
       const reader = new FileReader();
@@ -150,6 +156,20 @@ export class LandingpageComponent implements OnInit, OnDestroy {
       // usuário selecionou arquivo; não precisamos mais mostrar o aviso
       this.orcAttempted = false;
     }
+  }
+
+  // Gera um data URL SVG simples indicando 'Arquivo PDF' para usar como preview
+  private _pdfPreviewDataUrl(filename: string): string {
+    const short = filename.length > 24 ? filename.slice(0, 20) + '...' : filename;
+    const svg = `
+      <svg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'>
+        <rect width='100%' height='100%' fill='#f5f5f7'/>
+        <rect x='20' y='20' width='560' height='360' rx='12' fill='#ffffff' stroke='#e2e8f0' />
+        <text x='50%' y='45%' dominant-baseline='middle' text-anchor='middle' font-family='Arial, Helvetica, sans-serif' font-size='28' fill='#d9534f'>📄 Arquivo PDF</text>
+        <text x='50%' y='60%' dominant-baseline='middle' text-anchor='middle' font-family='Arial, Helvetica, sans-serif' font-size='16' fill='#666'>${short}</text>
+      </svg>
+    `;
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   }
 
   enforceMinQty() {
@@ -478,5 +498,40 @@ export class LandingpageComponent implements OnInit, OnDestroy {
   getImagemUrl(imagem: string): string {
     if (!imagem) return 'assets/images/placeholder.jpg';
     return `${environment.assetsUrl.replace(/\/$/, '')}/uploads/produtos/${imagem}`;
+  }
+
+  // Abre o arquivo anexado ao orçamento em nova aba
+  abrirArquivoOrc() {
+    if (!this.orcForm?.arquivo) return;
+    // Se temos arquivo original como File, preferimos usar object URL
+    try {
+      const file = this.orcForm.arquivo as File;
+      const isPdf = file.type === 'application/pdf' || (file.name || '').toLowerCase().endsWith('.pdf');
+      if (file) {
+        const url = URL.createObjectURL(file);
+        window.open(url, '_blank');
+        // opcional: revogar depois de algum tempo
+        setTimeout(() => URL.revokeObjectURL(url), 60 * 1000);
+        return;
+      }
+    } catch (err) {
+      console.error('Erro ao abrir arquivo orc:', err);
+    }
+    // fallback: se temos base64
+    if (this.orcForm.arquivoBase64) {
+      window.open(this.orcForm.arquivoBase64, '_blank');
+    }
+  }
+
+  // Remove o arquivo anexado do formulário de orçamento
+  removerArquivoOrc() {
+    this.orcForm.arquivo = null;
+    this.orcForm.arquivoBase64 = null;
+    this.orcForm.arquivoName = null;
+    this.previewUrl = null;
+    this.toastr.info('Arquivo removido.');
+    // also clear the input element value if present
+    const input = document.getElementById('orcFile') as HTMLInputElement | null;
+    if (input) input.value = '';
   }
 }

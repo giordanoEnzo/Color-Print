@@ -200,6 +200,15 @@
               <small class="text-danger" *ngIf="orcConfig?.upload_obrigatorio && orcAttempted && !orcForm.arquivo">Upload obrigatório</small>
             </div>
 
+            <!-- Preview do arquivo enviado -->
+            <div *ngIf="previewUrl" class="orc-preview mt-2">
+              <img [src]="previewUrl" alt="Preview do arquivo" class="orc-preview-img" (click)="abrirArquivoOrc()" />
+              <div class="orc-preview-actions">
+                <button class="btn btn-sm btn-outline-primary me-2" (click)="abrirArquivoOrc()">Abrir arquivo</button>
+                <button class="btn btn-sm btn-danger" (click)="removerArquivoOrc()">Remover arquivo</button>
+              </div>
+            </div>
+
             <button
               type="button"
               class="btn btn-secondary w-100 mt-3"
