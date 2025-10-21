@@ -120,6 +120,12 @@ export class CheckoutComponent implements OnInit {
     this.carregandoPagamento = true;
 
     // Pedido que será enviado para o backend (vai para /checkout)
+    // Normalize frete and total before sending
+    const normalizedFrete = this.freteSelecionado ? {
+      name: this.freteSelecionado.name,
+      price: Number(String(this.freteSelecionado.price).replace(',', '.'))
+    } : null;
+
     const pedido = {
       nome,
       email,
@@ -135,8 +141,8 @@ export class CheckoutComponent implements OnInit {
         preco: this.toNum(item.preco),
         quantidade: this.toNum(item.quantidade) || 1,
       })),
-      frete: this.freteSelecionado,
-      total: this.obterTotalComFrete()
+      frete: normalizedFrete,
+      total: Number(String(this.obterTotalComFrete()).replace(',', '.'))
     };
 
     console.log('[DEBUG] Pedido enviado para API/checkout:', pedido);
@@ -206,6 +212,11 @@ export class CheckoutComponent implements OnInit {
       arquivoName: (item as any).arquivoName || null
     }));
 
+    const normalizedFrete2 = this.freteSelecionado ? {
+      name: this.freteSelecionado.name,
+      price: Number(String(this.freteSelecionado.price).replace(',', '.'))
+    } : null;
+
     const pedido = {
       nome,
       email,
@@ -216,8 +227,8 @@ export class CheckoutComponent implements OnInit {
       cidade,
       estado_uf,
       items,
-      frete: this.freteSelecionado,
-      total: this.obterTotalComFrete()
+      frete: normalizedFrete2,
+      total: Number(String(this.obterTotalComFrete()).replace(',', '.'))
     };
 
     console.log('[TEMP] Enviando pedido direto para /vendas (items summary):', items.map(i => ({ nome: i.nome, quantidade: i.quantidade })));

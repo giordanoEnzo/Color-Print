@@ -157,6 +157,27 @@
             <input class="form-control" [(ngModel)]="pedidoSelecionado.frete_valor" disabled />
           </div>
           
+          <div class="mb-3" *ngIf="pedidoSelecionado?.arte_pedido || pedidoSelecionado?.arte_pedido_url">
+            <label>Arte Anexada:</label>
+            <div class="d-flex align-items-center">
+              <div *ngIf="pedidoSelecionado.arte_pedido_url; else localPath">
+                <a [href]="pedidoSelecionado.arte_pedido_url" target="_blank">
+                  <img [src]="pedidoSelecionado.arte_pedido_url" alt="Arte do pedido" style="max-height:80px; max-width:120px; object-fit:contain; border:1px solid #ddd; margin-right:8px;" />
+                </a>
+              </div>
+              <ng-template #localPath>
+                <a [href]="getArteUrl(pedidoSelecionado.arte_pedido)" target="_blank">
+                  <img [src]="getArteUrl(pedidoSelecionado.arte_pedido)" alt="Arte do pedido" style="max-height:80px; max-width:120px; object-fit:contain; border:1px solid #ddd; margin-right:8px;" />
+                </a>
+              </ng-template>
+
+              <div>
+                <a class="btn btn-sm btn-outline-primary me-2" [href]="pedidoSelecionado.arte_pedido_url || getArteUrl(pedidoSelecionado.arte_pedido)" target="_blank">Abrir</a>
+                <button class="btn btn-sm btn-primary" (click)="baixarArte(pedidoSelecionado.arte_pedido_url || getArteUrl(pedidoSelecionado.arte_pedido))">Baixar</button>
+              </div>
+            </div>
+          </div>
+          
           <h6>Itens do Pedido:</h6>
           <ul class="list-group">
             <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let item of pedidoSelecionado.itens_pedido">

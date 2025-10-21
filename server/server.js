@@ -872,6 +872,26 @@ app.post('/api/vendas', uploadVenda.single('arquivo'), async (req, res) => {
       artePath = `uploads/artes/${req.file.filename}`;
     }
 
+    // Quando a requisição vem via multipart/form-data (FormData), alguns campos vêm como strings
+    // (por exemplo items e frete são JSON strings). Normalizamos aqui para garantir valores corretos
+    let parsedItems = items;
+    if (typeof items === 'string') {
+      try { parsedItems = JSON.parse(items); } catch (e) { parsedItems = items; }
+    }
+
+    let parsedFrete = frete;
+    if (typeof frete === 'string') {
+      try { parsedFrete = JSON.parse(frete); } catch (e) { parsedFrete = frete; }
+    }
+
+    // Normalize total to number (accepts strings with ',' or '.')
+    const totalNumber = total == null ? null : Number(String(total).replace(',', '.'));
+
+    const freteNome = parsedFrete && typeof parsedFrete === 'object' ? parsedFrete.name || null : null;
+    const freteValor = parsedFrete && typeof parsedFrete === 'object' && parsedFrete.price
+      ? Number(String(parsedFrete.price).replace(',', '.'))
+      : null;
+
     const [result] = await db.promise().query(
       `INSERT INTO vendas
         (nome_cliente, email_cliente, telefone_cliente, endereco_cliente, cep_cliente, logradouro, cidade, estado_uf, total_compra, itens_pedido, frete_nome, frete_valor, status_pedido, arte_pedido)
@@ -885,10 +905,10 @@ app.post('/api/vendas', uploadVenda.single('arquivo'), async (req, res) => {
         logradouro,
         cidade,
         estado_uf,
-        total, // ✅ novo campo
-        JSON.stringify(items),
-        frete?.name || null,
-        frete?.price ? Number(String(frete.price).replace(',', '.')) : null,
+        totalNumber,
+        JSON.stringify(parsedItems),
+        freteNome,
+        freteValor,
         'PENDENTE',
         artePath
       ]

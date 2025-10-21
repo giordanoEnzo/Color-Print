@@ -105,6 +105,40 @@ export default class DashboardComponent implements OnInit {
     });
   }
 
+  // Retorna URL completa para o arquivo de arte (ou retorna a URL diretamente se já for absoluta)
+  getArteUrl(artePath: string): string {
+    if (!artePath) return '';
+    // Se já for URL completa, retorna como está
+    if (/^https?:\/\//i.test(artePath)) return artePath;
+    // Remove barras iniciais e concatena com apiUrl
+    const clean = artePath.replace(/^\/+/, '');
+    return `${environment.apiUrl}/${clean}`;
+  }
+
+  // Baixa um arquivo pela URL (força o download via blob) para contornar falta de Content-Disposition
+  async baixarArte(url: string | null) {
+    if (!url) return alert('URL da arte não disponível');
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error('Falha ao baixar arquivo');
+      const blob = await resp.blob();
+      // tenta extrair nome do arquivo da URL
+      const pathname = new URL(url, window.location.href).pathname;
+      const name = pathname.split('/').pop() || `arte_${Date.now()}`;
+
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(link.href);
+    } catch (err) {
+      console.error('Erro ao baixar arte:', err);
+      alert('Erro ao baixar o arquivo da arte. Verifique o console para mais detalhes.');
+    }
+  }
+
   // MÉTODO NOVO: Remover venda
   removerVenda(id: number) {
     if (confirm('Tem certeza que deseja remover esta venda?')) {
