@@ -96,9 +96,12 @@
             <img [src]="getImagemUrl(produto.imagem)" [alt]="produto.nome" />
           </div>
           <h4 class="product-name">{{ produto.nome }}</h4>
-          <p class="product-price">
-            {{ produto.preco | currency : "BRL" }}
-          </p>
+            <p class="product-price" *ngIf="(produto.preco || 0) > 0; else orcHome">
+              A partir de: {{ produto.preco | currency:'BRL' }}
+            </p>
+            <ng-template #orcHome>
+              <p class="product-price">Orçamento online</p>
+            </ng-template>
           <button class="add-to-cart-btn" (click)="abrirModal(produto)">
             ADICIONAR CARRINHO
           </button>
