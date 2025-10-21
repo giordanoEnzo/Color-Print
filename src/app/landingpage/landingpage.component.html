@@ -124,6 +124,7 @@
           [src]="previewUrl || getImagemUrl(produtoSelecionado.imagem)"
           [alt]="produtoSelecionado.nome"
           class="modal-img"
+          (click)="orcForm?.arquivo ? abrirArquivoOrc() : null"
         />
       </div>
 
@@ -200,12 +201,15 @@
               <small class="text-danger" *ngIf="orcConfig?.upload_obrigatorio && orcAttempted && !orcForm.arquivo">Upload obrigatório</small>
             </div>
 
-            <!-- Preview do arquivo enviado -->
-            <div *ngIf="previewUrl" class="orc-preview mt-2">
-              <img [src]="previewUrl" alt="Preview do arquivo" class="orc-preview-img" (click)="abrirArquivoOrc()" />
-              <div class="orc-preview-actions">
-                <button class="btn btn-sm btn-outline-primary me-2" (click)="abrirArquivoOrc()">Abrir arquivo</button>
-                <button class="btn btn-sm btn-danger" (click)="removerArquivoOrc()">Remover arquivo</button>
+            <!-- Inline preview + actions placed under the file input -->
+            <div *ngIf="orcForm?.arquivo" class="orc-preview-inline mt-2 d-flex align-items-center">
+              <img [src]="previewUrl" alt="Preview" class="orc-preview-img-small" (click)="abrirArquivoOrc()" />
+              <div class="ms-2">
+                <div class="filename small mb-1">{{ orcForm.arquivoName || orcForm.arquivo?.name }}</div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-outline-primary" (click)="abrirArquivoOrc()">Abrir arquivo</button>
+                  <button class="btn btn-sm btn-danger" (click)="removerArquivoOrc()">Remover arquivo</button>
+                </div>
               </div>
             </div>
 
