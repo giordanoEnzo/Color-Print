@@ -34,10 +34,60 @@
     h2 { margin-bottom: 0.25rem; color: #1f2a6b }
     .lead { color:#666; margin-bottom:1rem }
     .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 1rem; align-items: start; }
-    .team-member { background:#fff; padding:1rem; border-radius:10px; box-shadow: 0 6px 18px rgba(20,20,60,0.04); img{ width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:0.5rem } h4{ margin:0 } .role{ color:#666; font-size:0.9rem }}
+    .team-member {
+      background:#fff;
+      padding:1rem;
+      border-radius:10px;
+      box-shadow: 0 6px 18px rgba(20,20,60,0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+
+      /* Avatar: fixed square, center-cropped via object-fit so any image ratio fits nicely */
+      img{
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        object-position: center;
+        border-radius: 50%; /* circular avatar */
+        margin-bottom: 0.75rem;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        background: #fff;
+        flex-shrink: 0;
+      }
+
+      h4{ margin:0 }
+      .role{ color:#666; font-size:0.9rem }
+    }
+
+    /* Smaller avatars on narrow screens */
+    @media (max-width: 480px) {
+      .team-member img {
+        width: 88px;
+        height: 88px;
+      }
+    }
   }
 
   .contact-cta { background:#f4f7ff; padding:1.6rem 0; margin-top:1.5rem; .cta-inner{ max-width:1200px; margin:0 auto; display:flex; gap:1rem; align-items:center; justify-content:space-between; padding:0 1rem; @media(max-width:720px){ flex-direction:column; text-align:center } } }
+
+  /* História: centered medium/large text */
+  .historia {
+    padding: 2.5rem 1rem;
+    .historia-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+      h2 { font-size: 2rem; color: #1f2a6b; margin-bottom: 1rem; }
+      .historia-text {
+        font-size: 1.125rem; /* 18px approx */
+        line-height: 1.6;
+        color: #444;
+        margin: 0 auto;
+      }
+    }
+  }
 }
 
 /* small responsive tweaks */

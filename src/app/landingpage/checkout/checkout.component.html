@@ -53,48 +53,51 @@
         <input type="email" id="email" class="form-control" placeholder="seuemail@exemplo.com" required />
       </div>
 
-      <div class="col-md-6 mt-3">
-        <label for="endereco" class="form-label">Endereço:</label>
-        <input type="text" id="endereco" class="form-control" placeholder="Rua, avenida..." required />
+      <!-- Endereço maior: ocupa largura completa para facilitar preenchimento -->
+      <div class="col-12 mt-3">
+        <label for="endereco" class="form-label">Endereço (Rua, avenida, bairro):</label>
+        <input type="text" id="endereco" class="form-control" placeholder="Rua, avenida, bairro..." required />
       </div>
 
+      <!-- Número / Complemento menor -->
       <div class="col-md-3 mt-3">
-        <label for="logradouro" class="form-label">Logradouro:</label>
-        <input type="text" id="logradouro" class="form-control" placeholder="Número, complemento..." required  />
+        <label for="logradouro" class="form-label">Número / Complemento:</label>
+        <input type="text" id="logradouro" class="form-control" placeholder="Nº, apto, ..." />
       </div>
 
-      <!-- removed local file upload: use the 'Enviar estampa' upload in Orçamento Online modal instead -->
-
-      <div class="col-md-3 mt-3">
+      <!-- Cidade maior -->
+      <div class="col-md-5 mt-3">
         <label for="cidade" class="form-label">Cidade:</label>
         <input type="text" id="cidade" class="form-control" placeholder="Sua cidade" required  />
       </div>
 
-      <div class="col-md-3 mt-3">
+      <div class="col-md-2 mt-3">
         <label for="estado_uf" class="form-label">Estado (UF):</label>
         <input type="text" id="estado_uf" class="form-control" placeholder="Ex: SP" maxlength="2" />
       </div>
 
-      <div class="col-md-6 mt-3">
+      <!-- CEP em nova linha, maior -->
+      <div class="col-12 mt-3">
         <label for="cep" class="form-label">CEP:</label>
-        <input
-          type="text"
-          id="cep"
-          class="form-control"
-          [(ngModel)]="cepDestino"
-          name="cepDestino"
-          mask="00000-000"
-          placeholder="00000-000"
-          required 
-        />
-        <!-- Usamos o upload de 'Enviar estampa' no modal de Orçamento Online; campo removido daqui -->
-        <button
-          type="button"
-          class="btn btn-outline-primary btn-sm mt-2"
-          (click)="calcularFrete()"
-        >
-          Calcular Frete
-        </button>
+        <div class="d-flex gap-2">
+          <input
+            type="text"
+            id="cep"
+            class="form-control"
+            [(ngModel)]="cepDestino"
+            name="cepDestino"
+            mask="00000-000"
+            placeholder="00000-000"
+            required
+          />
+          <button
+            type="button"
+            class="btn btn-outline-primary"
+            (click)="calcularFrete()"
+          >
+            Calcular Frete
+          </button>
+        </div>
 
         <div class="mt-2" *ngIf="carregandoFrete">Calculando frete...</div>
         <div class="text-danger mt-2" *ngIf="freteErro">{{ freteErro }}</div>

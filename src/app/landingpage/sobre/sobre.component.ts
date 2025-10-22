@@ -19,4 +19,7 @@ export class SobreComponent {
     { name: 'Carlos Pereira', role: 'Produção', photo: 'assets/images/team/team3.jpg' },
     { name: 'Ana Costa', role: 'Atendimento', photo: 'assets/images/team/team4.jpg' },
   ];
+
+  // Texto para a seção "História" — pode ser trocado conforme necessário
+  historiaText: string = 'A Color Print nasceu da vontade de unir criatividade e tecnologia para oferecer soluções de comunicação visual eficientes. Ao longo dos anos, crescemos com foco na qualidade, no cumprimento de prazos e no atendimento personalizado aos nossos clientes.';
 }

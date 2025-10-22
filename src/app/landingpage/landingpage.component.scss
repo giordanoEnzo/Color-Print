@@ -686,6 +686,11 @@ $transition: all 0.3s ease;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   z-index: 1001;
   padding: 1.5rem;
+  /* Ensure modal never exceeds viewport and keep scrollbars always visible */
+  max-height: 90vh;
+  /* Always show vertical scrollbar and allow horizontal scrolling when needed */
+  overflow-y: scroll; /* vertical scrollbar always visible */
+  overflow-x: auto;   /* horizontal scroll when content overflows */
 }
 
 .close-btn {
@@ -710,15 +715,17 @@ $transition: all 0.3s ease;
 
   @media (max-width: 768px) {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch; /* let children take full width and allow inner scrolling */
   }
 }
 
 .modal-left {
   flex: 1;
+  min-width: 0; /* allow flex child to shrink properly */
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: auto; /* enable scrolling if image is larger than container */
 
   .modal-img {
     width: 420px;
@@ -727,6 +734,10 @@ $transition: all 0.3s ease;
     object-fit: contain;
     box-shadow: 0 6px 18px rgba(0,0,0,0.15);
     background: #fff;
+    /* Make image responsive and constrain by viewport height */
+    max-width: 100%;
+    height: auto;
+    max-height: 70vh;
   }
 
   /* Large preview caption and actions when an orcamento file is attached */
@@ -772,6 +783,7 @@ $transition: all 0.3s ease;
 
 .modal-right {
   flex: 1.2;
+  min-width: 0; /* allow content to wrap and enable internal scrolling */
   display: flex;
   flex-direction: column;
   justify-content: space-between;

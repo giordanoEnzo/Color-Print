@@ -96,12 +96,12 @@
             <img [src]="getImagemUrl(produto.imagem)" [alt]="produto.nome" />
           </div>
           <h4 class="product-name">{{ produto.nome }}</h4>
-            <p class="product-price" *ngIf="(produto.preco || 0) > 0; else orcHome">
-              A partir de: {{ produto.preco | currency:'BRL' }}
-            </p>
-            <ng-template #orcHome>
-              <p class="product-price">Orçamento online</p>
-            </ng-template>
+          <p class="product-price" *ngIf="(produto.preco || 0) > 0; else orcHome">
+            A partir de: {{ produto.preco | currency:'BRL' }}
+          </p>
+          <ng-template #orcHome>
+            <p class="product-price">Orçamento online</p>
+          </ng-template>
           <button class="add-to-cart-btn" (click)="abrirModal(produto)">
             ADICIONAR CARRINHO
           </button>
@@ -110,227 +110,168 @@
     </section>
   </div>
 
-  <!-- MODAL DE PRODUTO -->
+  <!-- MODAL DE PRODUTO COM SCROLL -->
   <div
     class="modal-backdrop"
     (click)="fecharModal()"
     *ngIf="produtoSelecionado"
   ></div>
 
-  <div class="product-modal" *ngIf="produtoSelecionado">
-    <button class="close-btn" (click)="fecharModal()">✖</button>
+  <div class="product-modal scrollable-modal" *ngIf="produtoSelecionado">
+    <div class="modal-scroll-wrapper">
+      <button class="close-btn" (click)="fecharModal()">✖</button>
 
-    <div class="modal-content">
-      <!-- LADO ESQUERDO: IMAGEM COM PREVIEW -->
-      <div class="modal-left">
-        <img
-          [src]="previewUrl || getImagemUrl(produtoSelecionado.imagem)"
-          [alt]="produtoSelecionado.nome"
-          class="modal-img"
-          (click)="orcForm?.arquivo ? abrirArquivoOrc() : null"
-        />
-      </div>
+      <div class="modal-content">
+        <div class="modal-left">
+          <img
+            [src]="previewUrl || getImagemUrl(produtoSelecionado.imagem)"
+            [alt]="produtoSelecionado.nome"
+            class="modal-img"
+            (click)="orcForm?.arquivo ? abrirArquivoOrc() : null"
+          />
+        </div>
 
-      <!-- LADO DIREITO: INFO -->
-      <div class="modal-right"> 
-        <br /><br />
-        <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
-        <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
+        <div class="modal-right"> 
+          <h3 class="modal-title">{{ produtoSelecionado.nome }}</h3>
+          <p class="modal-desc">{{ produtoSelecionado.descricao }}</p>
 
-        <!-- 🚀 MODO ORÇAMENTO ONLINE -->
-        <ng-container *ngIf="orcConfig?.aceita_orcamento; else vendaNormal">
-          <div class="orcamento-box">
+          <!-- 🚀 MODO ORÇAMENTO ONLINE -->
+          <ng-container *ngIf="orcConfig?.aceita_orcamento; else vendaNormal">
+            <div class="orcamento-box">
 
-            <label class="input-label mb-2">Informe as medidas:</label>
+              <label class="input-label mb-2">Informe as medidas:</label>
 
-            <!-- grid com 3 colunas -->
-            <div class="dimension-grid">
-              <div class="form-group">
-                <label for="altura_cm" class="form-label">Altura (cm)</label>
-                <input
-                  id="altura_cm"
-                  type="text"
-                  inputmode="decimal"
-                  pattern="[0-9]+([\\.,][0-9]{1,2})?"
-                  class="form-control"
-                  [value]="orcForm.altura_cm"
-                  (input)="onDimChange('altura_cm', $any($event.target).value)"
-                  (blur)="normalizarIncrements()"
-                  placeholder="ex: 2,5"
-                />
+              <div class="dimension-grid">
+                <div class="form-group">
+                  <label for="altura_cm" class="form-label">Altura (cm)</label>
+                  <input
+                    id="altura_cm"
+                    type="text"
+                    inputmode="decimal"
+                    pattern="[0-9]+([\\.,][0-9]{1,2})?"
+                    class="form-control"
+                    [value]="orcForm.altura_cm"
+                    (input)="onDimChange('altura_cm', $any($event.target).value)"
+                    (blur)="normalizarIncrements()"
+                    placeholder="ex: 2,5"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="largura_cm" class="form-label">Largura (cm)</label>
+                  <input
+                    id="largura_cm"
+                    type="text"
+                    inputmode="decimal"
+                    pattern="[0-9]+([\\.,][0-9]{1,2})?"
+                    class="form-control"
+                    [value]="orcForm.largura_cm"
+                    (input)="onDimChange('largura_cm', $any($event.target).value)"
+                    (blur)="normalizarIncrements()"
+                    placeholder="ex: 5"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="quantidade" class="form-label">Quantidade</label>
+                  <input
+                    id="quantidade"
+                    type="number"
+                    min="100"
+                    step="1"
+                    class="form-control"
+                    [(ngModel)]="orcForm.quantidade"
+                    (blur)="enforceMinQty()"
+                    placeholder="ex: 100"
+                  />
+                  <small class="text-muted">Mínimo: 100</small>
+                </div>
               </div>
 
-              <div class="form-group">
-                <label for="largura_cm" class="form-label">Largura (cm)</label>
+              <div class="form-group mt-2">
+                <label for="orcFile" class="form-label">Enviar estampa (Imagem/PDF)</label>
                 <input
-                  id="largura_cm"
-                  type="text"
-                  inputmode="decimal"
-                  pattern="[0-9]+([\\.,][0-9]{1,2})?"
+                  id="orcFile"
+                  type="file"
                   class="form-control"
-                  [value]="orcForm.largura_cm"
-                  (input)="onDimChange('largura_cm', $any($event.target).value)"
-                  (blur)="normalizarIncrements()"
-                  placeholder="ex: 5"
+                  (change)="onOrcFile($event)"
+                  accept="image/*,.pdf"
                 />
+                <small class="text-danger" *ngIf="orcConfig?.upload_obrigatorio && orcAttempted && !orcForm.arquivo">Upload obrigatório</small>
               </div>
 
-              <div class="form-group">
-                <label for="quantidade" class="form-label">Quantidade</label>
-                <input
-                  id="quantidade"
-                  type="number"
-                  min="100"
-                  step="1"
-                  class="form-control"
-                  [(ngModel)]="orcForm.quantidade"
-                  (blur)="enforceMinQty()"
-                  placeholder="ex: 100"
-                />
-                <small class="text-muted">Mínimo: 100</small>
+              <div *ngIf="orcForm?.arquivo" class="orc-preview-inline mt-2 d-flex align-items-center">
+                <img [src]="previewUrl" alt="Preview" class="orc-preview-img-small" (click)="abrirArquivoOrc()" />
+                <div class="ms-2">
+                  <div class="filename small mb-1">{{ orcForm.arquivoName || orcForm.arquivo?.name }}</div>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary" (click)="abrirArquivoOrc()">Abrir arquivo</button>
+                    <button class="btn btn-sm btn-danger" (click)="removerArquivoOrc()">Remover arquivo</button>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-secondary w-100 mt-3" (click)="calcularOrcamento()" [disabled]="loadingOrc">
+                {{ loadingOrc ? 'Calculando...' : 'Simular orçamento' }}
+              </button>
+
+              <button type="button" class="btn btn-outline-danger w-100 mt-2" *ngIf="simulacao" (click)="limparOrcamento()">
+                Limpar simulação
+              </button>
+
+              <div *ngIf="simulacao" class="simulacao-box mt-3">
+                <p>Total: <strong>{{ simulacao.total | currency:'BRL' }}</strong></p>
+
+                <button class="btn btn-success w-100" (click)="adicionarOrcamentoAoCarrinho()">
+                  Adicionar orçamento ao carrinho
+                </button>
               </div>
             </div>
+          </ng-container>
 
-            <div class="form-group mt-2">
-              <label for="orcFile" class="form-label">Enviar estampa (Imagem/PDF)</label>
-              <input
-                id="orcFile"
-                type="file"
-                class="form-control"
-                (change)="onOrcFile($event)"
-                accept="image/*,.pdf"
-              />
-              <!-- Mostrar apenas quando upload for obrigatório, o usuário tentou simular, e nenhum arquivo foi selecionado -->
-              <small class="text-danger" *ngIf="orcConfig?.upload_obrigatorio && orcAttempted && !orcForm.arquivo">Upload obrigatório</small>
-            </div>
-
-            <!-- Inline preview + actions placed under the file input -->
-            <div *ngIf="orcForm?.arquivo" class="orc-preview-inline mt-2 d-flex align-items-center">
-              <img [src]="previewUrl" alt="Preview" class="orc-preview-img-small" (click)="abrirArquivoOrc()" />
-              <div class="ms-2">
-                <div class="filename small mb-1">{{ orcForm.arquivoName || orcForm.arquivo?.name }}</div>
-                <div class="d-flex gap-2">
-                  <button class="btn btn-sm btn-outline-primary" (click)="abrirArquivoOrc()">Abrir arquivo</button>
-                  <button class="btn btn-sm btn-danger" (click)="removerArquivoOrc()">Remover arquivo</button>
+          <!-- 🚀 MODO VENDA NORMAL -->
+          <ng-template #vendaNormal>
+            <div *ngIf="variacoesProduto.length > 0">
+              <label class="input-label">Opções:</label>
+              <div class="dimension-inputs">
+                <div
+                  *ngFor="let variacao of variacoesProduto"
+                  class="dimension-btn"
+                  (click)="selecionarVariacao(variacao)"
+                  [ngClass]="{
+                    'tamanho-btn-active':
+                      variacaoSelecionada?.id_variacao === variacao.id_variacao
+                  }"
+                >
+                  {{ variacao.descricao_opcao }}
+                  <br />
+                  <ng-container *ngIf="variacao.descricao_opcao !== 'Padrão'">
+                    <strong>
+                      R$ {{ variacao.preco_adicional | number : "1.2-2" }}
+                    </strong>
+                  </ng-container>
                 </div>
               </div>
             </div>
 
-            <button
-              type="button"
-              class="btn btn-secondary w-100 mt-3"
-              (click)="calcularOrcamento()"
-              [disabled]="loadingOrc"
-            >
-              {{ loadingOrc ? 'Calculando...' : 'Simular orçamento' }}
-            </button>
-
-            <!-- 💡 Botão limpar simulação -->
-            <button
-              type="button"
-              class="btn btn-outline-danger w-100 mt-2"
-              *ngIf="simulacao"
-              (click)="limparOrcamento()"
-            >
-              Limpar simulação
-            </button>
-
-            <div *ngIf="simulacao" class="simulacao-box mt-3">
-              <p *ngIf="simulacao.bucket_label || simulacao.tier">
-                <ng-container *ngIf="simulacao.bucket_label">Faixa: <strong>{{ simulacao.bucket_label }}</strong></ng-container>
-                <ng-container *ngIf="simulacao.tier"> | Tier: <strong>{{ simulacao.tier }}</strong></ng-container>
-              </p>
-
-              <p *ngIf="simulacao.preco_mode?.startsWith('AREA') || orcConfig?.preco_unidade">
-                Unidade de precificação:
-                <strong>
-                  {{
-                    (orcConfig?.preco_unidade || (simulacao.preco_mode === 'AREA_M2' ? 'M2' : 'CM2'))
-                      === 'M2' ? 'R$/m²' : 'R$/cm²'
-                  }}
-                </strong>
-              </p>
-
-              <p *ngIf="simulacao.preco_unidade_area">
-                Preço por área:
-                <strong>
-                  {{ simulacao.preco_unidade_area | currency:'BRL' }}
-                  {{
-                    (orcConfig?.preco_unidade || (simulacao.preco_mode === 'AREA_M2' ? 'M2' : 'CM2'))
-                      === 'M2' ? '/m²' : '/cm²'
-                  }}
-                </strong>
-              </p>
-
-              <p *ngIf="simulacao.area_cm2 != null">
-                Área: <strong>{{ simulacao.area_cm2 }}</strong> cm²
-                <span *ngIf="simulacao.area_m2 != null"> ({{ simulacao.area_m2 }} m²)</span>
-              </p>
-
-              <p>Preço unitário (peça):
-                <strong>{{ simulacao.preco_unit_peca | currency:'BRL' }}</strong>
-              </p>
-
-              <p>Total:
-                <strong>{{ simulacao.total | currency:'BRL' }}</strong>
-              </p>
-
-              <button class="btn btn-success w-100" (click)="adicionarOrcamentoAoCarrinho()">
-                Adicionar orçamento ao carrinho
-              </button>
-            </div>
-          </div>
-        </ng-container>
-
-        <!-- 🚀 MODO VENDA NORMAL -->
-        <ng-template #vendaNormal>
-          <!-- Variações -->
-          <div *ngIf="variacoesProduto.length > 0">
-            <label class="input-label">Opções:</label>
-            <div class="dimension-inputs">
-              <div
-                *ngFor="let variacao of variacoesProduto"
-                class="dimension-btn"
-                (click)="selecionarVariacao(variacao)"
-                [ngClass]="{
-                  'tamanho-btn-active':
-                    variacaoSelecionada?.id_variacao === variacao.id_variacao,
-                  'Padrão-opcao': variacao.descricao_opcao === 'Padrão'
-                }"
-              >
-                {{ variacao.descricao_opcao }}
-                <br />
-                <ng-container *ngIf="variacao.descricao_opcao !== 'Padrão'">
-                  <strong>
-                    R$ {{ variacao.preco_adicional | number : "1.2-2" }}
-                  </strong>
-                </ng-container>
+            <div class="quantidade-control">
+              <label>Quantidade:</label>
+              <div class="contador">
+                <button (click)="decrementarQuantidade()" class="btn-menor">−</button>
+                <span class="quantidade">{{ quantidade }}</span>
+                <button (click)="incrementarQuantidade()" class="btn-maior">+</button>
               </div>
             </div>
-          </div>
 
-          <!-- Quantidade -->
-          <div class="quantidade-control">
-            <label>Quantidade:</label>
-            <div class="contador">
-              <button (click)="decrementarQuantidade()" class="btn-menor">−</button>
-              <span class="quantidade">{{ quantidade }}</span>
-              <button (click)="incrementarQuantidade()" class="btn-maior">+</button>
-            </div>
-          </div>
+            <p class="preco-calculado">
+              TOTAL: {{ precoCalculado | currency : "BRL" }}
+            </p>
 
-          <!-- PREÇO -->
-          <p class="preco-calculado">
-            TOTAL: {{ precoCalculado | currency : "BRL" }}
-          </p>
-
-          <button
-            class="adicionar-btn"
-            (click)="adicionarSelecionadoAoCarrinho()"
-          >
-            Adicionar ao carrinho
-          </button>
-        </ng-template>
+            <button class="adicionar-btn" (click)="adicionarSelecionadoAoCarrinho()">
+              Adicionar ao carrinho
+            </button>
+          </ng-template>
+        </div>
       </div>
     </div>
   </div>
