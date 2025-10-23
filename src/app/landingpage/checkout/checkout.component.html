@@ -152,15 +152,6 @@
       Pagar com Mercado Pago
     </button>
     
-    <!-- BOTÃO TEMPORÁRIO: registra venda sem passar pelo Mercado Pago (apenas para testes) -->
-    <button
-      class="btn btn-outline-secondary btn-lg ms-2"
-      [disabled]="carregandoPagamento || carrinho.length === 0"
-      (click)="registrarVendaDireto()"
-      title="Botão temporário: registra a venda diretamente no backend para testes"
-    >
-      Registrar venda (pular pagamento)
-    </button>
   </div>
 </div>
 

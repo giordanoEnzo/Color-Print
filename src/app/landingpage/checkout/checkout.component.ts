@@ -152,7 +152,64 @@ export class CheckoutComponent implements OnInit {
       next: (res) => {
         this.carregandoPagamento = false;
         if (res?.init_point) {
-          window.location.href = res.init_point; // redireciona para pagamento
+          // Se houver arte(s) em base64 no carrinho, envie para o endpoint /api/vendas/:id/arte
+          const orderId = (res as any).order_id || null;
+          const itemComArquivo = this.carrinho.find(it => (it as any).arquivoBase64);
+
+          const redirectToMP = () => { window.location.href = (res as any).init_point; };
+
+          if (orderId && itemComArquivo && (itemComArquivo as any).arquivoBase64) {
+            // Converte dataURL -> File (mesma lógica usada no método temporário)
+            const b64DataUrl = (itemComArquivo as any).arquivoBase64 as string;
+            const originalName = (itemComArquivo as any).arquivoName || `arte_${Date.now()}`;
+
+            const dataURLtoFile = (dataurl: string, filename: string): File => {
+              const parts = dataurl.split(',');
+              const meta = parts[0] || '';
+              const base64 = parts[1] || parts[0];
+              const mimeMatch = meta.match(/data:([^;]+)/);
+              const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+              const binary = atob(base64);
+              const len = binary.length;
+              const u8 = new Uint8Array(len);
+              for (let i = 0; i < len; i++) u8[i] = binary.charCodeAt(i);
+
+              let fname = filename;
+              if (!/\./.test(fname)) {
+                const ext = mime.split('/')[1] || 'bin';
+                fname = `${fname}.${ext}`;
+              }
+
+              return new File([u8], fname, { type: mime });
+            };
+
+            try {
+              const file = dataURLtoFile(b64DataUrl, originalName);
+              const fd = new FormData();
+              fd.append('arquivo', file);
+
+              // envia arquivo para o endpoint específico de arte do pedido
+              this.http.post(`${environment.apiUrl}/vendas/${orderId}/arte`, fd).subscribe({
+                next: () => {
+                  // independente do sucesso do upload, redirecionamos ao MP
+                  redirectToMP();
+                },
+                error: (err) => {
+                  console.warn('Upload de arte falhou, redirecionando ao Mercado Pago:', err);
+                  redirectToMP();
+                }
+              });
+              return; // não redireciona aqui — o redirect ocorre no callback acima
+            } catch (e) {
+              console.error('Erro ao converter base64 para arquivo antes do upload:', e);
+              // continua e redireciona mesmo se falhar
+              redirectToMP();
+              return;
+            }
+          }
+
+          // Sem arquivo para enviar ou sem orderId: redireciona direto
+          redirectToMP();
         } else {
           this.toastr.error('Erro ao gerar link de pagamento.');
         }
