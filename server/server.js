@@ -10,6 +10,7 @@ const path = require('path');
 const fs = require('fs');
 
 const axios = require('axios');
+const QRCode = require('qrcode');
 
 const app = express();
 const port = process.env.PORT || 2000;
@@ -91,7 +92,9 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-const accessToken = 'APP_USR-6075250848382634-062113-eadc8f1b789f83bf6d218a2c84d5a5c5-2191408844';
+// Mercado Pago Access Token
+// Prefer env var; fallback to legacy hardcoded token (consider moving this to .env in production)
+const accessToken = process.env.MP_ACCESS_TOKEN || 'APP_USR-6075250848382634-062113-eadc8f1b789f83bf6d218a2c84d5a5c5-2191408844';
 
 const { MercadoPagoConfig, Payment, Preference } = require('mercadopago');
 
@@ -312,36 +315,82 @@ app.post('/api/webhook/mercadopago', async (req, res) => {
 });
 
 app.post('/api/pix', async (req, res) => {
-  const payment = new Payment(client);
+  try {
+    const payment = new Payment(client);
 
-  const { transaction_amount, description, payer_email } = req.body;
+    const { transaction_amount, description, payer_email } = req.body;
 
-  const formattedAmount = toNumber(transaction_amount);
+    const formattedAmount = toNumber(transaction_amount);
+    if (!Number.isFinite(formattedAmount) || formattedAmount <= 0) {
+      return res.status(400).json({ error: 'Valor do pagamento PIX inválido.' });
+    }
+    if (!payer_email) {
+      return res.status(400).json({ error: 'E-mail do pagador é obrigatório para PIX.' });
+    }
 
-  const body = {
-    transaction_amount: formattedAmount,
-    description: description || 'Pagamento via PIX',
-    payment_method_id: 'pix',
-    payer: {
-      email: payer_email
-    },
-    binary_mode: true
-  };
+    const body = {
+      transaction_amount: formattedAmount,
+      description: description || 'Pagamento via PIX',
+      payment_method_id: 'pix',
+      payer: {
+        email: payer_email
+      },
+      binary_mode: true
+    };
 
-  const result = await payment.create({ body });
+    const result = await payment.create({ body });
 
-  const paymentInfo = {
-    id: result.id,
-    status: result.status,
-    status_detail: result.status_detail,
-    qr_code: result.point_of_interaction.transaction_data.qr_code,
-    qr_code_base64: result.point_of_interaction.transaction_data.qr_code_base64,
-    ticket_url: result.point_of_interaction.transaction_data.ticket_url,
-    transaction_amount: result.transaction_amount,
-  };
+    const tx = result?.point_of_interaction?.transaction_data || {};
+    const paymentInfo = {
+      id: result?.id,
+      status: result?.status,
+      status_detail: result?.status_detail,
+      qr_code: tx.qr_code,
+      qr_code_base64: tx.qr_code_base64,
+      ticket_url: tx.ticket_url,
+      transaction_amount: result?.transaction_amount,
+    };
 
-  console.log('ID do pagamento criado:', result.id);
-  res.json(paymentInfo);
+    // Aceita sucesso se ao menos tivermos um ID e alguma forma de pagamento (qr_code_base64 OU qr_code OU ticket_url)
+    if (!paymentInfo.id || (!paymentInfo.qr_code_base64 && !paymentInfo.qr_code && !paymentInfo.ticket_url)) {
+      console.error('[PIX] Resposta inesperada do MP (faltando dados para exibir ao cliente):', result);
+      return res.status(502).json({ error: 'Falha ao gerar dados do PIX. Tente novamente em instantes.' });
+    }
+
+    // Fallback: se não vier a imagem pronta do MP, geramos localmente a partir do "copia e cola"
+    if (!paymentInfo.qr_code_base64 && paymentInfo.qr_code) {
+      try {
+        const dataUrl = await QRCode.toDataURL(paymentInfo.qr_code, {
+          errorCorrectionLevel: 'M',
+          margin: 1,
+          width: 512
+        });
+        paymentInfo.qr_code_base64 = (dataUrl || '').split(',')[1] || null;
+      } catch (genErr) {
+        console.warn('[PIX] Falha ao gerar QR localmente a partir do texto:', genErr?.message || genErr);
+      }
+    }
+
+    console.log('ID do pagamento PIX criado:', paymentInfo.id);
+    return res.json(paymentInfo);
+  } catch (err) {
+    const status = err?.status || err?.response?.status || 500;
+    const details = err?.response?.data || err?.message || err;
+    const detailMsg = (typeof details === 'string') ? details : (details?.message || JSON.stringify(details));
+
+    // Mensagem mais amigável para erro conhecido de QR render desabilitado na conta
+    if (String(detailMsg).toLowerCase().includes('collector user') && String(detailMsg).toLowerCase().includes('qr')) {
+      console.error('[PIX] Conta sem permissão para gerar QR Code PIX:', detailMsg);
+      return res.status(400).json({
+        error: 'Sua conta do Mercado Pago não está habilitada para gerar QR Code PIX.',
+        hint: 'Ative a funcionalidade de PIX/QR Code no painel do Mercado Pago ou use um access token com permissão.',
+        details
+      });
+    }
+
+    console.error('[PIX] Erro ao criar pagamento:', details);
+    return res.status(status).json({ error: 'Erro ao criar pagamento PIX.', details });
+  }
 });
 
 app.get('/api/pix/status/:id', async (req, res) => {

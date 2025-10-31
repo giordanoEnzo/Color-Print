@@ -152,6 +152,73 @@
       Pagar com Mercado Pago
     </button>
     
+    <button
+      class="btn btn-primary btn-lg ms-2"
+      [disabled]="!freteSelecionado || carregandoFrete || carrinho.length === 0"
+      (click)="pagarComPix()"
+    >
+      Pagar com PIX
+    </button>
+    
+  </div>
+</div>
+
+<!-- Modal PIX (simples, sem depender do JS do Bootstrap) -->
+<div *ngIf="showPixModal" 
+     style="position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:1050;">
+  <div style="background:#fff; width:95%; max-width:560px; border-radius:12px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.2);">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="m-0">Pagamento via PIX</h5>
+      <button class="btn btn-sm btn-outline-secondary" (click)="closePixModal()">Fechar</button>
+    </div>
+
+    <div *ngIf="pixLoading" class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <div class="mt-2">Gerando QR Code do PIX...</div>
+    </div>
+
+    <div *ngIf="!pixLoading">
+      <div *ngIf="pixError" class="alert alert-danger">{{ pixError }}</div>
+
+      <div *ngIf="!pixError">
+        <div class="text-center">
+          <div class="mb-2 text-muted">Total: <strong>R$ {{ obterTotalComFrete() }}</strong></div>
+
+          <img *ngIf="pixQrCodeBase64" 
+               [src]="'data:image/png;base64,' + pixQrCodeBase64" 
+               alt="QR Code PIX" 
+               style="max-width:300px; width:100%; height:auto; border:1px solid #eee; padding:8px; border-radius:8px;"/>
+
+          <div class="mt-3">
+            <label class="form-label">Copia e Cola (PIX):</label>
+            <textarea class="form-control" rows="3" readonly>{{ pixQrCode }}</textarea>
+            <div class="d-flex justify-content-center gap-2 mt-2">
+              <button class="btn btn-outline-primary btn-sm" (click)="copyPixCode()">Copiar código</button>
+              <a *ngIf="pixTicketUrl" [href]="pixTicketUrl" target="_blank" class="btn btn-outline-secondary btn-sm">Abrir página do pagamento</a>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <span class="badge" [ngClass]="{
+                'bg-secondary': pixStatus === 'pending',
+                'bg-success': pixStatus === 'approved',
+                'bg-danger': pixStatus === 'rejected'
+              }">
+              Status: {{ pixStatus || 'pendente' }}
+            </span>
+          </div>
+
+          <div *ngIf="pixStatus === 'approved'" class="alert alert-success mt-3 mb-0">
+            Pagamento aprovado! Você receberá a confirmação.
+          </div>
+          <div *ngIf="pixStatus === 'rejected'" class="alert alert-danger mt-3 mb-0">
+            Pagamento recusado. Tente novamente.
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 

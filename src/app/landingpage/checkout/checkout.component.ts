@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 
@@ -11,7 +11,7 @@ import { environment } from 'src/environments/environment';
   templateUrl: './checkout.component.html',
   styleUrls: ['./checkout.component.scss']
 })
-export class CheckoutComponent implements OnInit {
+export class CheckoutComponent implements OnInit, OnDestroy {
   carrinho: any[] = [];
   total: number = 0;
 
@@ -23,6 +23,17 @@ export class CheckoutComponent implements OnInit {
   freteSelecionado: FreteMelhorEnvio | null = null;
 
   carregandoPagamento: boolean = false;
+
+  // PIX state
+  showPixModal: boolean = false;
+  pixLoading: boolean = false;
+  pixError: string = '';
+  pixQrCodeBase64: string | null = null;
+  pixQrCode: string | null = null;
+  pixTicketUrl: string | null = null;
+  pixPaymentId: string | null = null;
+  pixStatus: string | null = null;
+  private pixInterval: any = null;
 
   constructor(
     private freteService: FreteService,
@@ -36,6 +47,10 @@ export class CheckoutComponent implements OnInit {
     const carrinhoLocal = localStorage.getItem('carrinho');
     this.carrinho = carrinhoLocal ? JSON.parse(carrinhoLocal) : [];
     this.calcularTotal();
+  }
+
+  ngOnDestroy(): void {
+    this.clearPixPolling();
   }
 
   private toNum(v: any): number {
@@ -91,6 +106,131 @@ export class CheckoutComponent implements OnInit {
   obterTotalComFrete(): string {
     const valorFrete = this.freteSelecionado ? this.toNum(this.freteSelecionado.price) : 0;
     return (this.total + valorFrete).toFixed(2);
+  }
+
+  // ====== PIX ======
+  pagarComPix(): void {
+    // Captura campos mínimos necessários
+    const nome = (document.getElementById('nome') as HTMLInputElement)?.value?.trim() || '';
+    const email = (document.getElementById('email') as HTMLInputElement)?.value?.trim() || '';
+    const telefone = (document.getElementById('telefone') as HTMLInputElement)?.value?.trim() || '';
+    const endereco = (document.getElementById('endereco') as HTMLInputElement)?.value?.trim() || '';
+    const cepRaw = (document.getElementById('cep') as HTMLInputElement)?.value?.trim() || '';
+    const cep = cepRaw.replace(/\D/g, '');
+    const logradouro = (document.getElementById('logradouro') as HTMLInputElement)?.value?.trim() || '';
+    const cidade = (document.getElementById('cidade') as HTMLInputElement)?.value?.trim() || '';
+    const estado_uf = (document.getElementById('estado_uf') as HTMLInputElement)?.value?.trim() || '';
+
+    // Mesma validação do checkout clássico, para manter consistência
+    if (!nome || !email || !telefone || !endereco || !cep || cep.length < 8 || !logradouro || !cidade || !estado_uf) {
+      this.toastr.error('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+    if (!this.freteSelecionado || this.carrinho.length === 0) {
+      this.toastr.error('Selecione o frete para continuar.');
+      return;
+    }
+
+    const totalStr = this.obterTotalComFrete();
+    const valor = Number(String(totalStr).replace(',', '.'));
+    if (!Number.isFinite(valor) || valor <= 0) {
+      this.toastr.error('Valor total inválido para PIX.');
+      return;
+    }
+
+    // Abre modal e inicia geração
+    this.showPixModal = true;
+    this.pixLoading = true;
+    this.pixError = '';
+    this.pixQrCodeBase64 = null;
+    this.pixQrCode = null;
+    this.pixTicketUrl = null;
+    this.pixPaymentId = null;
+    this.pixStatus = 'pending';
+    this.clearPixPolling();
+
+    // Chama backend para criar pagamento PIX
+    this.http.post<any>(`${environment.apiUrl}/pix`, {
+      transaction_amount: valor,
+      description: 'Pagamento via PIX',
+      payer_email: email
+    }).subscribe({
+      next: (res) => {
+        this.pixPaymentId = res?.id || null;
+        this.pixQrCodeBase64 = res?.qr_code_base64 || null;
+        this.pixQrCode = res?.qr_code || null;
+        this.pixTicketUrl = res?.ticket_url || null;
+        this.pixStatus = res?.status || 'pending';
+        this.pixLoading = false;
+
+        // Prossegue se tivermos um ID e algum dado útil (qr_code_base64 OU qr_code OU ticket_url)
+        if (!this.pixPaymentId || (!this.pixQrCodeBase64 && !this.pixQrCode && !this.pixTicketUrl)) {
+          this.pixError = 'Não foi possível gerar os dados do PIX. Tente novamente.';
+          return;
+        }
+        // Inicia polling de status
+        this.startPixPolling();
+      },
+      error: (err) => {
+        this.pixLoading = false;
+        const msg = err?.error?.error || err?.error?.message || 'Erro ao gerar PIX.';
+        this.pixError = typeof msg === 'string' ? msg : 'Erro ao gerar PIX.';
+      }
+    });
+  }
+
+  private startPixPolling(): void {
+    this.clearPixPolling();
+    if (!this.pixPaymentId) return;
+    const startAt = Date.now();
+    const timeoutMs = 10 * 60 * 1000; // 10 minutos
+
+    this.pixInterval = setInterval(() => {
+      if (!this.pixPaymentId) return;
+      this.http.get<{ status: string }>(`${environment.apiUrl}/pix/status/${this.pixPaymentId}`).subscribe({
+        next: (r) => {
+          const st = r?.status || this.pixStatus;
+          this.pixStatus = st;
+          if (st === 'approved') {
+            this.toastr.success('Pagamento PIX aprovado!');
+            this.clearPixPolling();
+          } else if (st === 'rejected' || st === 'cancelled') {
+            this.toastr.error('Pagamento PIX não aprovado.');
+            this.clearPixPolling();
+          }
+        },
+        error: () => {
+          // silencioso; tenta novamente no próximo ciclo
+        }
+      });
+
+      if (Date.now() - startAt > timeoutMs) {
+        this.clearPixPolling();
+        this.toastr.info('Pagamento PIX ainda pendente. Você pode concluir mais tarde usando o código.');
+      }
+    }, 3000);
+  }
+
+  private clearPixPolling(): void {
+    if (this.pixInterval) {
+      clearInterval(this.pixInterval);
+      this.pixInterval = null;
+    }
+  }
+
+  closePixModal(): void {
+    this.clearPixPolling();
+    this.showPixModal = false;
+  }
+
+  copyPixCode(): void {
+    if (!this.pixQrCode) return;
+    try {
+      navigator.clipboard.writeText(this.pixQrCode);
+      this.toastr.success('Código PIX copiado!');
+    } catch {
+      this.toastr.info('Não foi possível copiar automaticamente. Selecione e copie manualmente.');
+    }
   }
   finalizarCompra(): void {
     const nome = (document.getElementById('nome') as HTMLInputElement)?.value?.trim() || '';
