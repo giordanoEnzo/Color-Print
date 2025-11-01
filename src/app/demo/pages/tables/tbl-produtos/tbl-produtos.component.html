@@ -18,7 +18,14 @@
               </div>
 
               <h5 class="card-title product-title">{{ produto.nome }}</h5>
-              <p class="card-text product-price">{{ produto.preco | currency: 'BRL' }}</p>
+              <p class="card-text product-price">
+                <ng-container *ngIf="(produto?.preco || 0) > 0; else orcamentoOnline">
+                  {{ produto.preco | currency: 'BRL' }}
+                </ng-container>
+                <ng-template #orcamentoOnline>
+                  orçamento online
+                </ng-template>
+              </p>
               <p class="card-text product-description">{{ produto.descricao }}</p>
 
               <div class="d-flex justify-content-between">
