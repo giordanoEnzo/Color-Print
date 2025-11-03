@@ -192,6 +192,42 @@
           </div>
           <!-- /Dimensões e Peso (EDIÇÃO) -->
 
+          <!-- ===== VARIAÇÕES ===== -->
+          <div class="form-group mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="m-0">Variações do produto</label>
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="adicionarVariacao()">+ Adicionar variação</button>
+            </div>
+
+            <div *ngIf="(produtoEmEdicao?.variacoes?.length || 0) > 0; else semVariacoes">
+              <div class="border rounded p-2 mb-2 variacao-item" *ngFor="let v of (produtoEmEdicao?.variacoes || []); let i = index">
+                <div class="row g-2">
+                  <div class="col-md-4">
+                    <label>Nome da variação</label>
+                    <input class="form-control" [(ngModel)]="v.nome_variacao" [name]="'nome_variacao_'+i" placeholder="Ex: Tamanho, Cor" />
+                  </div>
+                  <div class="col-md-5">
+                    <label>Opção/Descrição</label>
+                    <input class="form-control" [(ngModel)]="v.descricao_opcao" [name]="'descricao_opcao_'+i" placeholder="Ex: Grande, Verde" />
+                  </div>
+                  <div class="col-md-2">
+                    <label>Preço adicional (R$)</label>
+                    <input type="number" step="0.01" class="form-control" [(ngModel)]="v.preco_adicional" [name]="'preco_adicional_'+i" />
+                  </div>
+                  <div class="col-md-2 col-12 d-flex align-items-end variacao-remove-col">
+                    <button type="button" class="btn btn-outline-danger w-100 variacao-remove-btn" (click)="removerVariacao(i)">Remover</button>
+                  </div>
+                </div>
+                <div *ngIf="v.id_variacao" class="small text-muted mt-1">ID: {{ v.id_variacao }}</div>
+              </div>
+            </div>
+            <ng-template #semVariacoes>
+              <div class="text-muted">Nenhuma variação adicionada.</div>
+            </ng-template>
+            <small class="text-muted d-block mt-2">As variações são salvas quando você clicar em "Salvar" no produto.</small>
+          </div>
+          <!-- ===== /VARIAÇÕES ===== -->
+
           <!-- ===== ORÇAMENTO ONLINE ===== -->
           <div class="form-group mt-4">
             <div class="orcamento-toggle">

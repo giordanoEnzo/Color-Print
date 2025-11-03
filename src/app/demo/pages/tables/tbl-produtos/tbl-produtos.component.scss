@@ -403,6 +403,29 @@
   overflow-x: auto;
 }
 
+/* ===== Variações (botão remover) ===== */
+.variacao-item {
+  .variacao-remove-col {
+    display: flex;
+    align-items: end;
+  }
+  .variacao-remove-btn {
+    min-width: 110px;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .variacao-item {
+    .variacao-remove-col {
+      margin-top: 6px;
+    }
+    .variacao-remove-btn {
+      width: 100%;
+    }
+  }
+}
+
 
 /* =========================
    Animação
