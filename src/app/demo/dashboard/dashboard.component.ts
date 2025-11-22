@@ -16,6 +16,14 @@ export default class DashboardComponent implements OnInit {
   pedidosFinalizados = 0;
   pedidosPendentes = 0;
   pedidosCancelados = 0;
+  
+  // Novos insights
+  totalVendasMes = 0;
+  totalVendasDia = 0;
+  ticketMedio = 0;
+  pedidosHoje = 0;
+  pedidosMes = 0;
+  maiorVenda = 0;
 
   paginaAtual: number = 1;
   itensPorPagina: number = 10; // Ajuste conforme necessário
@@ -72,15 +80,52 @@ export default class DashboardComponent implements OnInit {
     this.http.get<any[]>(`${environment.apiUrl}/vendas`).subscribe({
       next: (dados) => {
         this.vendas = dados || [];
-        // Atualizar contadores de status
-        this.pedidosFinalizados = this.vendas.filter(v => v.status_pedido === 'FINALIZADA').length;
-        this.pedidosPendentes = this.vendas.filter(v => v.status_pedido === 'PENDENTE').length;
-        this.pedidosCancelados = this.vendas.filter(v => v.status_pedido === 'CANCELADA').length;
+        this.calcularMetricas();
       },
       error: (err) => {
         console.error('Erro ao buscar vendas:', err);
       }
     });
+  }
+
+  calcularMetricas() {
+    const hoje = new Date();
+    const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+
+    // Contadores de status
+    this.pedidosFinalizados = this.vendas.filter(v => v.status_pedido === 'FINALIZADA').length;
+    this.pedidosPendentes = this.vendas.filter(v => v.status_pedido === 'PENDENTE').length;
+    this.pedidosCancelados = this.vendas.filter(v => v.status_pedido === 'CANCELADA').length;
+
+    // Vendas finalizadas
+    const vendasFinalizadas = this.vendas.filter(v => v.status_pedido === 'FINALIZADA');
+
+    // Total de vendas do mês
+    const vendasMes = vendasFinalizadas.filter(v => {
+      const dataVenda = new Date(v.data_pedido);
+      return dataVenda >= inicioMes;
+    });
+    this.totalVendasMes = vendasMes.reduce((acc, v) => acc + (parseFloat(v.total_compra) || 0), 0);
+    this.pedidosMes = vendasMes.length;
+
+    // Total de vendas do dia
+    const vendasDia = vendasFinalizadas.filter(v => {
+      const dataVenda = new Date(v.data_pedido);
+      return dataVenda >= inicioDia;
+    });
+    this.totalVendasDia = vendasDia.reduce((acc, v) => acc + (parseFloat(v.total_compra) || 0), 0);
+    this.pedidosHoje = vendasDia.length;
+
+    // Ticket médio
+    this.ticketMedio = vendasFinalizadas.length > 0 
+      ? vendasFinalizadas.reduce((acc, v) => acc + (parseFloat(v.total_compra) || 0), 0) / vendasFinalizadas.length 
+      : 0;
+
+    // Maior venda
+    this.maiorVenda = vendasFinalizadas.length > 0
+      ? Math.max(...vendasFinalizadas.map(v => parseFloat(v.total_compra) || 0))
+      : 0;
   }
 
   getValorTotal(venda: any): string {
@@ -184,10 +229,8 @@ export default class DashboardComponent implements OnInit {
         next: () => {
           // Remove localmente para resposta rápida
           this.vendas = this.vendas.filter(v => v.id_pedido !== id);
-          // Recalcula os contadores
-          this.pedidosFinalizados = this.vendas.filter(v => v.status_pedido === 'FINALIZADA').length;
-          this.pedidosPendentes = this.vendas.filter(v => v.status_pedido === 'PENDENTE').length;
-          this.pedidosCancelados = this.vendas.filter(v => v.status_pedido === 'CANCELADA').length;
+          // Recalcula as métricas
+          this.calcularMetricas();
         },
         error: (err) => {
           alert('Erro ao remover venda!');

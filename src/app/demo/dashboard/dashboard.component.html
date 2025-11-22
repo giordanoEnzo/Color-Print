@@ -1,27 +1,70 @@
 <div class="row">
 
-  <!-- Cards dos KPIs -->
-  <div class="col-xl-4 col-md-6">
-    <div class="card mb-4">
+  <!-- Cards dos KPIs - Linha 1 -->
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card h-100">
       <div class="card-body">
         <h5 class="card-title">Pedidos Finalizados</h5>
         <h4 class="card-text">{{ pedidosFinalizados }}</h4>
       </div>
     </div>
   </div>
-  <div class="col-xl-4 col-md-6">
-    <div class="card mb-4">
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card h-100">
       <div class="card-body">
         <h5 class="card-title">Pedidos Pendentes</h5>
         <h4 class="card-text">{{ pedidosPendentes }}</h4>
       </div>
     </div>
   </div>
-  <div class="col-xl-4 col-md-6">
-    <div class="card mb-4">
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card h-100">
       <div class="card-body">
         <h5 class="card-title">Pedidos Cancelados</h5>
         <h4 class="card-text">{{ pedidosCancelados }}</h4>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">Pedidos Hoje</h5>
+        <h4 class="card-text">{{ pedidosHoje }}</h4>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cards dos KPIs - Linha 2 -->
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">Vendas Hoje</h5>
+        <h4 class="card-text">R$ {{ totalVendasDia | number:'1.2-2' }}</h4>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">Vendas do Mês</h5>
+        <h4 class="card-text">R$ {{ totalVendasMes | number:'1.2-2' }}</h4>
+        <p class="text-muted mb-0" style="font-size: 0.75rem;">{{ pedidosMes }} pedidos</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">Ticket Médio</h5>
+        <h4 class="card-text">R$ {{ ticketMedio | number:'1.2-2' }}</h4>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">Maior Venda</h5>
+        <h4 class="card-text">R$ {{ maiorVenda | number:'1.2-2' }}</h4>
       </div>
     </div>
   </div>
