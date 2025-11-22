@@ -24,7 +24,7 @@ export interface Navigation extends NavigationItem {
 const NavigationItems = [
   {
     id: 'navigation',
-    title: 'Navigation',
+    title: 'PRINCIPAL',
     type: 'group',
     icon: 'icon-navigation',
     children: [
@@ -133,7 +133,7 @@ const NavigationItems = [
   // },
   {
     id: 'TABELAS',
-    title: 'TABELAS',
+    title: 'COMPONENTES',
     type: 'group',
     icon: 'icon-group',
     children: [

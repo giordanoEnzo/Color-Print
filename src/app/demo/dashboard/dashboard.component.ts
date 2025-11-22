@@ -24,10 +24,48 @@ export default class DashboardComponent implements OnInit {
   pedidoSelecionado: any = null;
   carregandoStatus: boolean = false;
 
+  // Variáveis para drag-to-scroll
+  private isDown = false;
+  private startX = 0;
+  private scrollLeft = 0;
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.carregarVendas();
+    this.setupDragScroll();
+  }
+
+  setupDragScroll() {
+    setTimeout(() => {
+      const tableContainer = document.querySelector('.table-responsive');
+      if (!tableContainer) return;
+
+      tableContainer.addEventListener('mousedown', (e: any) => {
+        this.isDown = true;
+        tableContainer.classList.add('active-drag');
+        this.startX = e.pageX - (tableContainer as HTMLElement).offsetLeft;
+        this.scrollLeft = (tableContainer as HTMLElement).scrollLeft;
+      });
+
+      tableContainer.addEventListener('mouseleave', () => {
+        this.isDown = false;
+        tableContainer.classList.remove('active-drag');
+      });
+
+      tableContainer.addEventListener('mouseup', () => {
+        this.isDown = false;
+        tableContainer.classList.remove('active-drag');
+      });
+
+      tableContainer.addEventListener('mousemove', (e: any) => {
+        if (!this.isDown) return;
+        e.preventDefault();
+        const x = e.pageX - (tableContainer as HTMLElement).offsetLeft;
+        const walk = (x - this.startX) * 2; // Multiplicador para velocidade do scroll
+        (tableContainer as HTMLElement).scrollLeft = this.scrollLeft - walk;
+      });
+    }, 100);
   }
 
   carregarVendas() {
