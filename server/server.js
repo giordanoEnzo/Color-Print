@@ -16,10 +16,10 @@ const app = express();
 const port = process.env.PORT || 2000;
 
 /** CORS – adicione aqui as origens do seu front */
-const allowedOrigins = [
-  'http://localhost:4200',
-  'http://192.168.99.102:4200'
-];
+// const allowedOrigins = [
+//   'http://localhost:4200',
+//   'http://192.168.99.102:4200'
+// ];
 
 /** Helpers numéricos */
 function numOrNull(v) {
@@ -61,22 +61,22 @@ const meHeaders = {
 
 console.log('[ME] Base:', ME_BASE_URL, '| Token set:', Boolean(MELHOR_ENVIO_TOKEN));
 
-const corsOptions = {
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // permite Postman/sem origem
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Não permitido por CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
+// const corsOptions = {
+//   origin: function(origin, callback) {
+//     if (!origin) return callback(null, true); // permite Postman/sem origem
+//     if (allowedOrigins.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Não permitido por CORS'));
+//     }
+//   },
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+// };
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+// app.use(cors(corsOptions));
+// app.options('*', cors(corsOptions));
 
 // Middleware para habilitar JSON
 app.use(express.json());
